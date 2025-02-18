@@ -1,0 +1,711 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <title>DBMS調教師才能データ検索(仮テスト中)</title>
+  <style>
+    /* 全体基本文字サイズ：15pt */
+    .filter-panel, .table-panel {
+      font-size: 15pt;
+    }
+    /* チェックボックスは縦位置中央 */
+    input[type="checkbox"] {
+      vertical-align: middle;
+      margin: 0;
+    }
+    /* 全体レイアウト */
+    html, body {
+      margin: 0;
+      padding: 0;
+      height: 100%;
+      font-family: Arial, sans-serif;
+    }
+    .container {
+      display: flex;
+      height: 100%;
+    }
+    /* 左側フィルタ領域（幅25%） */
+    .filter-panel {
+      width: 25%;
+      padding: 10px;
+      box-sizing: border-box;
+      border-right: 1px solid #ccc;
+      overflow-y: auto;
+    }
+    /* 各フィルターグループ：flexレイアウト */
+    .filter-group {
+      margin-top: 15px;
+    }
+    .filter-group h4 {
+      margin: 10px 0 5px;
+      font-size: 15pt;
+    }
+    .checkboxes {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      align-items: center;
+    }
+    /* 天候グループ：ラベルテキスト末尾に全角スペースを追加 */
+    .checkboxes.weather label::after {
+      content: "　";
+    }
+    /* 馬場グループ：ラベルテキスト末尾に全角スペースを追加 */
+    .checkboxes.baba label::after {
+      content: "　";
+    }
+    /* 右側テーブル領域 */
+    .table-panel {
+      width: 75%;
+      padding: 10px;
+      box-sizing: border-box;
+      max-height: 100vh;
+      overflow-y: auto;
+    }
+    /* テーブル固定レイアウトと列幅指定 */
+    table {
+      width: 100%;
+      table-layout: fixed;
+      border-collapse: collapse;
+    }
+    colgroup col {
+      /* ご指定の幅 */
+      /* 才能名:150px, 常時:60px, 発動位置:70px, コンディション:70px, 縛り:70px, 発揮効果:350px, 発揮条件:350px, 発揮対象:100px, 発揮確率:80px */
+    }
+    /* テーブルセル：全テキスト表示（折り返し） */
+    th, td {
+      border: 1px solid #ccc;
+      padding: 5px;
+      text-align: left;
+      vertical-align: top;
+      white-space: normal;
+      word-break: break-word;
+      overflow: visible;
+    }
+    /* テーブルヘッダー固定 */
+    th {
+      position: sticky;
+      top: 0;
+      background: #fff;
+      z-index: 100;
+      border-bottom: 2px solid #ccc;
+      box-shadow: 0 2px 2px 0 rgba(0,0,0,0.5);
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <!-- 左側フィルタ領域 -->
+    <div class="filter-panel">
+      <h3>DBMS調教師才能データ検索(仮テスト中)</h3>
+      <br>
+      <h4>レース選択</h4>
+      <select id="raceConditionSelect" style="width:100%; font-size:15pt;">
+        <option value="">-- 全て表示 --</option>
+        <option value="0">フェブラリーステークス</option>
+        <option value="1">高松宮記念</option>
+        <option value="2">アルクォズスプリント</option>
+        <option value="3">ドバイターフ</option>
+        <option value="4">ドバイシーマクラシック</option>
+        <option value="5">ドバイゴールデンシャヒーン</option>
+        <option value="6">ドバイワールドカップ</option>
+        <option value="7">大阪杯</option>
+        <option value="8">桜花賞</option>
+        <option value="9">皐月賞</option>
+        <option value="10">クイーンエリザベス２世カップ</option>
+        <option value="11">天皇賞(春)</option>
+        <option value="12">ＮＨＫマイルカップ</option>
+        <option value="13">ヴィクトリアマイル</option>
+        <option value="14">オークス</option>
+        <option value="15">日本ダービー</option>
+        <option value="16">安田記念</option>
+        <option value="17">宝塚記念</option>
+        <option value="18">帝王賞</option>
+        <option value="19">ジャパンダートダービー</option>
+        <option value="20">スプリンターズステークス</option>
+        <option value="21">凱旋門賞</option>
+        <option value="22">秋華賞</option>
+        <option value="23">菊花賞</option>
+        <option value="24">天皇賞(秋)</option>
+        <option value="25">エリザベス女王杯</option>
+        <option value="26">マイルチャンピオンシップ</option>
+        <option value="27">ジャパンカップ</option>
+        <option value="28">チャンピオンズカップ</option>
+        <option value="29">阪神ジュベナイルフィリーズ</option>
+        <option value="30">香港スプリント</option>
+        <option value="31">香港マイル</option>
+        <option value="32">香港カップ</option>
+        <option value="33">香港ヴァーズ</option>
+        <option value="34">朝日杯フューチュリティステークス</option>
+        <option value="35">ホープフルステークス</option>
+        <option value="36">有馬記念</option>
+        <option value="37">東京大賞典</option>
+      </select>
+
+     
+      <!-- 騎乗指示グループ -->
+      <div class="filter-group">
+        <h4>騎乗指示</h4>
+        <div class="checkboxes">
+          <label><input type="checkbox" name="jockey" value="逃げ"> 逃げ</label>
+          <label><input type="checkbox" name="jockey" value="先行"> 先行</label>
+          <label><input type="checkbox" name="jockey" value="差し"> 差し</label>
+          <label><input type="checkbox" name="jockey" value="追込"> 追込</label>
+          <label><input type="checkbox" name="jockey" value="騎乗指示条件なし"> 騎乗指示条件なし</label>
+        </div>
+      </div>
+
+      <!-- 天候グループ -->
+      <div class="filter-group">
+        <h4>天候</h4>
+        <div class="checkboxes weather">
+          <label><input type="checkbox" name="weather" value="晴"> 晴</label>
+          <label><input type="checkbox" name="weather" value="曇"> 曇</label>
+          <label><input type="checkbox" name="weather" value="雨"> 雨</label>
+          <label><input type="checkbox" name="weather" value="雪"> 雪</label>
+          <label><input type="checkbox" name="weather" value="天候条件なし"> 天候条件なし</label>
+        </div>
+      </div>
+
+      <!-- 馬場グループ -->
+      <div class="filter-group">
+        <h4>馬場</h4>
+        <div class="checkboxes baba">
+          <label><input type="checkbox" name="baba" value="良"> 良</label>
+          <label><input type="checkbox" name="baba" value="稍重"> 稍重</label>
+          <label><input type="checkbox" name="baba" value="重"> 重</label>
+          <label><input type="checkbox" name="baba" value="不良"> 不良</label>
+          <label><input type="checkbox" name="baba" value="馬場条件なし"> 馬場条件なし</label>
+        </div>
+      </div>
+
+      <br>
+
+      <!-- 発揮効果フィルタグループ -->
+      <div class="filter-group">
+        <h4>発揮効果フィルタ</h4>
+        <div class="checkboxes">
+          <label><input type="checkbox" name="effect" value="常時"> 常時</label>
+          <label><input type="checkbox" name="effect" value="スタート"> スタート</label>
+          <label><input type="checkbox" name="effect" value="コーナー"> コーナー</label>
+          <label><input type="checkbox" name="effect" value="発動距離"> 発動距離</label>
+        </div>
+      </div>
+
+      <br>
+
+      <!-- 発揮位置別ソート -->
+      <div class="filter-group">
+        <h4>並び順</h4>
+        <div class="checkboxes">
+          <label><input type="checkbox" id="sortEffect"> 発揮位置別ソート</label>
+
+          <br>
+
+          <small><small>
+          ※以下の順にソートします<br>
+          常時のみ→スタート→コーナー→直線→〇〇m以内→それ以外<br>
+
+          </small></small><br>
+
+        </div>
+      </div>
+    </div>
+
+    <!-- 右側テーブル領域 -->
+    <div class="table-panel">
+      <table id="dataTable">
+        <colgroup>
+          <col style="width: 150px;">
+          <col style="width: 60px;">
+          <col style="width: 70px;">
+          <col style="width: 70px;">
+          <col style="width: 70px;">
+          <col style="width: 350px;">
+          <col style="width: 350px;">
+          <col style="width: 100px;">
+          <col style="width: 80px;">
+        </colgroup>
+        <thead>
+          <tr>
+            <th>才能名</th>
+            <th>常時</th>
+            <th>発動位置</th>
+            <th>コンディション</th>
+            <th>縛り</th>
+            <th>発揮効果</th>
+            <th>発揮条件</th>
+            <th>発揮対象</th>
+            <th>発揮確率</th>
+          </tr>
+        </thead>
+        <tbody>
+          <!-- CSVデータ行をここに表示 -->
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <script>
+    // 除外対象の才能名（常に表示しない）
+    const jyogai = ['Cavaliere', '龍嘶鳳冠', 'Chevalier', '虚空宿星', '人馬一体', '人馬二体', '憧憬燎火', '獅子奮迅', '未来鳳花', '気炎万丈', '天心炯眼', '意思疎通', '以心伝心', '臥竜鳳雛', '一蓮托生', '意気投合', '英姿颯爽', '寸歩不離', '神色自若', '渾然一体', '不離一体', '鼓舞激励', '機知奇策', '形影一如', '一心同体', '同腹一心', 'いいこだね！', '玉鳳舞桐花', '少壮気鋭', '中間管理録‥！', '不借身命', '王冠', '恩賞', 'Obelisk', '矜持', '燵人', '胆気', '胆力', '追撃', '追走', '蛇めっ‥！', '魅了', '憂駿', '阿吽之息'];
+
+    // レース条件（プルダウン用／プログラム内で使用）
+    const raceConditions = [
+      { race: "フェブラリーステークス", distance: "1600", turfDirt: "ダート", racecourse: "東京" },
+      { race: "高松宮記念",             distance: "1200", turfDirt: "芝",   racecourse: "中京" },
+      { race: "アルクォズスプリント",   distance: "1200", turfDirt: "芝",   racecourse: "メイダン" },
+      { race: "ドバイターフ",           distance: "1800", turfDirt: "芝",   racecourse: "メイダン" },
+      { race: "ドバイシーマクラシック", distance: "2410", turfDirt: "芝",   racecourse: "メイダン" },
+      { race: "ドバイゴールデンシャヒーン", distance: "1200", turfDirt: "ダート", racecourse: "メイダン" },
+      { race: "ドバイワールドカップ",   distance: "2000", turfDirt: "ダート", racecourse: "メイダン" },
+      { race: "大阪杯",                 distance: "2000", turfDirt: "芝",   racecourse: "阪神" },
+      { race: "桜花賞",                 distance: "1600", turfDirt: "芝",   racecourse: "阪神" },
+      { race: "皐月賞",                 distance: "2000", turfDirt: "芝",   racecourse: "中山" },
+      { race: "クイーンエリザベス２世カップ", distance: "2000", turfDirt: "芝", racecourse: "シャティン" },
+      { race: "天皇賞(春)",             distance: "3200", turfDirt: "芝",   racecourse: "京都" },
+      { race: "ＮＨＫマイルカップ",     distance: "1600", turfDirt: "芝",   racecourse: "東京" },
+      { race: "ヴィクトリアマイル",     distance: "1600", turfDirt: "芝",   racecourse: "東京" },
+      { race: "オークス",               distance: "2400", turfDirt: "芝",   racecourse: "東京" },
+      { race: "日本ダービー",           distance: "2400", turfDirt: "芝",   racecourse: "東京" },
+      { race: "安田記念",               distance: "1600", turfDirt: "芝",   racecourse: "東京" },
+      { race: "宝塚記念",               distance: "2200", turfDirt: "芝",   racecourse: "阪神" },
+      { race: "帝王賞",                 distance: "2000", turfDirt: "ダート", racecourse: "大井（夜）" },
+      { race: "ジャパンダートダービー",   distance: "2000", turfDirt: "ダート", racecourse: "大井（夜）" },
+      { race: "スプリンターズステークス", distance: "1200", turfDirt: "芝",   racecourse: "中山" },
+      { race: "凱旋門賞",               distance: "2400", turfDirt: "芝",   racecourse: "ロンシャン" },
+      { race: "秋華賞",                 distance: "2000", turfDirt: "芝",   racecourse: "京都" },
+      { race: "菊花賞",                 distance: "3000", turfDirt: "芝",   racecourse: "京都" },
+      { race: "天皇賞(秋)",             distance: "2000", turfDirt: "芝",   racecourse: "東京" },
+      { race: "エリザベス女王杯",         distance: "2200", turfDirt: "芝",   racecourse: "京都" },
+      { race: "マイルチャンピオンシップ", distance: "1600", turfDirt: "芝",   racecourse: "京都" },
+      { race: "ジャパンカップ",         distance: "2400", turfDirt: "芝",   racecourse: "東京" },
+      { race: "チャンピオンズカップ",     distance: "1800", turfDirt: "ダート", racecourse: "中京" },
+      { race: "阪神ジュベナイルフィリーズ", distance: "1600", turfDirt: "芝",   racecourse: "阪神" },
+      { race: "香港スプリント",         distance: "1200", turfDirt: "芝",   racecourse: "シャティン" },
+      { race: "香港マイル",             distance: "1600", turfDirt: "芝",   racecourse: "シャティン" },
+      { race: "香港カップ",             distance: "2000", turfDirt: "芝",   racecourse: "シャティン" },
+      { race: "香港ヴァーズ",           distance: "2400", turfDirt: "芝",   racecourse: "シャティン" },
+      { race: "朝日杯フューチュリティステークス", distance: "1600", turfDirt: "芝", racecourse: "阪神" },
+      { race: "ホープフルステークス",     distance: "2000", turfDirt: "芝",   racecourse: "中山" },
+      { race: "有馬記念",               distance: "2500", turfDirt: "芝",   racecourse: "中山" },
+      { race: "東京大賞典",             distance: "2000", turfDirt: "ダート", racecourse: "大井" }
+    ];
+
+    /***********************************************
+     * CSVデータ読み込みとテーブル更新処理
+     ***********************************************/
+    let csvData = [];
+
+    fetch('data.csv')
+      .then(response => response.text())
+      .then(text => {
+        csvData = parseCSV(text);
+        filterCSVData();
+      })
+      .catch(err => console.error(err));
+
+    /***********************************************
+     * 改良版 CSV パーサー（セル内改行、引用符対応）
+     ***********************************************/
+    function parseCSV(text) {
+      const rows = [];
+      let current = "";
+      let currentRow = [];
+      let inQuotes = false;
+      for (let i = 0; i < text.length; i++) {
+        const c = text[i];
+        if (c === '"') {
+          if (inQuotes && i + 1 < text.length && text[i+1] === '"') {
+            current += '"';
+            i++;
+          } else {
+            inQuotes = !inQuotes;
+          }
+        } else if (c === ',' && !inQuotes) {
+          currentRow.push(current);
+          current = "";
+        } else if ((c === "\n" || c === "\r") && !inQuotes) {
+          if (c === "\r" && i + 1 < text.length && text[i+1] === "\n") { i++; }
+          currentRow.push(current);
+          rows.push(currentRow);
+          currentRow = [];
+          current = "";
+        } else {
+          current += c;
+        }
+      }
+      if (current !== "" || currentRow.length > 0) {
+        currentRow.push(current);
+        rows.push(currentRow);
+      }
+      const headers = rows[0];
+      const data = [];
+      for (let i = 1; i < rows.length; i++) {
+        const row = rows[i];
+        let record = {};
+        headers.forEach((header, j) => {
+          record[header.trim()] = row[j] ? row[j].trim() : "";
+        });
+        data.push(record);
+      }
+      return data;
+    }
+
+    /***********************************************
+     * フィルタ用関数（レース条件関連）
+     ***********************************************/
+    function checkDistance(conditionStr, selectedDistance) {
+      if (!conditionStr) return true;
+      let rangeRegex = /(\d{4})\s*[～-]\s*(\d{4})m/;
+      let rangeMatch = conditionStr.match(rangeRegex);
+      if (rangeMatch) {
+        let low = parseInt(rangeMatch[1], 10);
+        let high = parseInt(rangeMatch[2], 10);
+        let dist = parseInt(selectedDistance, 10);
+        return (dist >= low && dist <= high);
+      }
+      let matches = conditionStr.match(/(\d{4})/g);
+      if (matches) {
+        return matches.includes(selectedDistance);
+      }
+      return true;
+    }
+
+    function checkTurfDirt(conditionStr, selectedSurface) {
+      if (!conditionStr) return true;
+      if (conditionStr.indexOf("芝") !== -1 || conditionStr.indexOf("ダート") !== -1) {
+        return conditionStr.indexOf(selectedSurface) !== -1;
+      }
+      return true;
+    }
+
+    function checkRacecourse(conditionStr, selectedRacecourse) {
+      if (!conditionStr) return true;
+      const knownRacecourses = ["東京", "中京", "メイダン", "阪神", "中山", "シャティン", "京都", "大井", "大井（夜）", "ロンシャン"];
+      let found = false;
+      knownRacecourses.forEach(rc => {
+        if (conditionStr.indexOf(rc) !== -1) { found = true; }
+      });
+      if (found) {
+        return conditionStr.indexOf(selectedRacecourse) !== -1;
+      }
+      return true;
+    }
+
+    function checkRaceName(conditionStr, selectedRaceName) {
+      if (!conditionStr) return true;
+      const knownRaces = raceConditions.map(rc => rc.race);
+      let found = false;
+      knownRaces.forEach(race => {
+        if (conditionStr.indexOf(race) !== -1) { found = true; }
+      });
+      if (found) {
+        return conditionStr.indexOf(selectedRaceName) !== -1;
+      }
+      return true;
+    }
+
+    /***********************************************
+     * フィルタ用関数（チェックボックス：騎乗指示・天候・馬場）
+     ***********************************************/
+    function getCheckedValues(name) {
+      const checkboxes = document.querySelectorAll('input[name="'+name+'"]:checked');
+      return Array.from(checkboxes).map(cb => cb.value);
+    }
+
+    function checkJockey(conditionStr, selectedOptions) {
+      if (selectedOptions.length === 0) return true;
+      if (conditionStr.indexOf("騎乗指示：") !== -1) {
+        const selectedInstructions = selectedOptions.filter(val => val !== "騎乗指示条件なし");
+        if (selectedInstructions.length === 0) return false;
+        for (let ins of selectedInstructions) {
+          if (conditionStr.indexOf(ins) !== -1) return true;
+        }
+        return false;
+      } else {
+        return selectedOptions.includes("騎乗指示条件なし");
+      }
+    }
+
+    function checkWeather(conditionStr, selectedOptions) {
+      if (selectedOptions.length === 0) return true;
+      if (conditionStr.indexOf("天候が") !== -1) {
+        const selectedWeathers = selectedOptions.filter(val => val !== "天候条件なし");
+        if (selectedWeathers.length === 0) return false;
+        for (let w of selectedWeathers) {
+          if (conditionStr.indexOf(w) !== -1) return true;
+        }
+        return false;
+      } else {
+        return selectedOptions.includes("天候条件なし");
+      }
+    }
+
+    // 【修正】馬場フィルター：天候フィルターと同様のロジックに
+    function checkBaba(conditionStr, selectedOptions) {
+      if (selectedOptions.length === 0) return true;
+      if (conditionStr.indexOf("馬場状態が") !== -1) {
+        const selectedBabas = selectedOptions.filter(val => val !== "馬場条件なし");
+        if (selectedBabas.length === 0) return false;
+        for (let b of selectedBabas) {
+          if (conditionStr.indexOf(b) !== -1 && conditionStr.indexOf("馬場状態が") !== -1 && new RegExp("馬場状態が[\\s\u3000]*" + b).test(conditionStr)) {
+            return true;
+          }
+        }
+        return false;
+      } else {
+        return selectedOptions.includes("馬場条件なし");
+      }
+    }
+
+    /***********************************************
+     * フィルタ用関数（発揮効果フィルタ）
+     ***********************************************/
+    function checkEffect(effectStr, selectedEffects) {
+      if (selectedEffects.length === 0) return true;
+      for (let option of selectedEffects) {
+        if (option === "常時" && effectStr.indexOf("常時") === -1) return false;
+        if (option === "スタート" && effectStr.indexOf("スタート") === -1) return false;
+        if (option === "コーナー" && effectStr.indexOf("コーナー") === -1) return false;
+        if (option === "発動距離" && (effectStr.indexOf("ゴールまで") === -1 && effectStr.indexOf("最後の直線") === -1)) return false;
+      }
+      return true;
+    }
+
+    /***********************************************
+     * 発揮効果によるソート用関数
+     ***********************************************/
+    function getSortCategory(effectStr) {
+      if (!effectStr) return { category: 6, goalDistance: 0 };
+      if (effectStr.indexOf("常時") !== -1 &&
+          effectStr.indexOf("スタート") === -1 &&
+          effectStr.indexOf("コーナー") === -1 &&
+          effectStr.indexOf("最後の直線") === -1 &&
+          effectStr.indexOf("ゴールまで") === -1) {
+        return { category: 1, goalDistance: 0 };
+      } else if (effectStr.indexOf("スタート") !== -1) {
+        return { category: 2, goalDistance: 0 };
+      } else if (effectStr.indexOf("コーナー") !== -1) {
+        return { category: 3, goalDistance: 0 };
+      } else if (effectStr.indexOf("最後の直線") !== -1) {
+        return { category: 4, goalDistance: 0 };
+      } else if (effectStr.indexOf("ゴールまで") !== -1) {
+        let goalRegex = /ゴールまで\s*(\d{1,4})m以内で/g;
+        let max = 0, m;
+        while ((m = goalRegex.exec(effectStr)) !== null) {
+          let num = parseInt(m[1], 10);
+          if (num > max) max = num;
+        }
+        return { category: 5, goalDistance: max };
+      } else {
+        return { category: 6, goalDistance: 0 };
+      }
+    }
+
+    /***********************************************
+     * 新規：各列の内容抽出関数
+     ***********************************************/
+    // 常時列：発揮効果内に「常時」があれば「〇」
+    function getConstant(effectStr) {
+      return (effectStr.indexOf("常時") !== -1) ? "〇" : "";
+    }
+    // 発動位置列：発揮効果内から各条件を抽出
+    function getActivationPosition(effectStr) {
+      let positions = [];
+      if (effectStr.indexOf("スタート") !== -1) {
+        positions.push("スタート");
+      }
+      if (effectStr.indexOf("コーナー") !== -1) {
+        positions.push("コーナー");
+      }
+      if (effectStr.indexOf("最後の直線") !== -1) {
+        positions.push("直線");
+      }
+      let goalMatches = effectStr.match(/ゴールまで\s*(\d{1,4})m以内で/g);
+      if (goalMatches) {
+        goalMatches.forEach(match => {
+          let num = match.match(/(\d{1,4})/)[1];
+          positions.push(num + "m");
+        });
+      }
+      return positions.join("＋");
+    }
+    // コンディション列：条件修正
+    function getCondition(conditionStr) {
+      if (conditionStr.indexOf("コンディションが絶好調") !== -1) {
+        return "絶好調";
+      } else if (conditionStr.indexOf("コンディションが好調以上") !== -1) {
+        return "好調";
+      } else if (conditionStr.indexOf("イレ込んでいる") !== -1) {
+        return "イレ込み";
+      }
+      return "";
+    }
+    // 縛り列：各キーワードチェック
+    function getRestriction(conditionStr) {
+      let restrictions = [];
+      if (conditionStr.indexOf("番手以下") !== -1 ||
+          conditionStr.indexOf("番手以上") !== -1 ||
+          conditionStr.indexOf("他馬と競り合う") !== -1 ||
+          conditionStr.indexOf("自分が最も速く") !== -1) {
+        restrictions.push("番手");
+      }
+      if (conditionStr.indexOf("番人気以上") !== -1 ||
+          conditionStr.indexOf("番人気以下") !== -1 ||
+          conditionStr.indexOf("一定以上の人気") !== -1 ||
+          conditionStr.indexOf("人気がない") !== -1 ||
+          conditionStr.indexOf("人気に印") !== -1) {
+        restrictions.push("人気");
+      }
+      if (conditionStr.indexOf("年齢が") !== -1) {
+        restrictions.push("年齢");
+      }
+      return restrictions.join("＋");
+    }
+
+    /***********************************************
+     * テーブル更新処理（重複除去付き）
+     ***********************************************/
+    function updateTable(data) {
+      const tbody = document.getElementById('dataTable').getElementsByTagName('tbody')[0];
+      tbody.innerHTML = '';
+      data.forEach(record => {
+        const tr = document.createElement('tr');
+
+        // 才能名（リンク化）
+        const tdName = document.createElement('td');
+        const a = document.createElement('a');
+        a.href = record.link;
+        a.textContent = record["才能名"];
+        a.target = "_blank";
+        tdName.appendChild(a);
+        tr.appendChild(tdName);
+
+        // 常時列
+        const tdConstant = document.createElement('td');
+        tdConstant.textContent = getConstant(record["発揮効果"] || "");
+        tr.appendChild(tdConstant);
+
+        // 発動位置列
+        const tdPosition = document.createElement('td');
+        tdPosition.textContent = getActivationPosition(record["発揮効果"] || "");
+        tr.appendChild(tdPosition);
+
+        // コンディション列（14pt）
+        const tdConditionCol = document.createElement('td');
+        tdConditionCol.textContent = getCondition(record["発揮条件"] || "");
+        tdConditionCol.style.fontSize = "14pt";
+        tr.appendChild(tdConditionCol);
+
+        // 縛り列（14pt）
+        const tdRestriction = document.createElement('td');
+        tdRestriction.textContent = getRestriction(record["発揮条件"] || "");
+        tdRestriction.style.fontSize = "14pt";
+        tr.appendChild(tdRestriction);
+
+        // 発揮効果（改行処理、14pt）
+        const tdEffect = document.createElement('td');
+        let effectText = record["発揮効果"] || "";
+        effectText = effectText.replace(/\s+(\u30FB)/g, '<br>$1');
+        tdEffect.innerHTML = effectText;
+        tdEffect.style.fontSize = "14pt";
+        tr.appendChild(tdEffect);
+
+        // 発揮条件（改行処理、14pt）
+        const tdCond = document.createElement('td');
+        let condText = record["発揮条件"] || "";
+        condText = condText.replace(/\s+(\u30FB)/g, '<br>$1');
+        tdCond.innerHTML = condText;
+        tdCond.style.fontSize = "14pt";
+        tr.appendChild(tdCond);
+
+        // 発揮対象（14pt）
+        const tdTarget = document.createElement('td');
+        tdTarget.textContent = record["発揮対象"] || "";
+        tdTarget.style.fontSize = "14pt";
+        tr.appendChild(tdTarget);
+
+        // 発揮確率（14pt）
+        const tdProb = document.createElement('td');
+        tdProb.textContent = record["発揮確率"] || "";
+        tdProb.style.fontSize = "14pt";
+        tr.appendChild(tdProb);
+
+        tbody.appendChild(tr);
+      });
+    }
+
+    // 重複除去：同じ才能名は1件のみ
+    function removeDuplicates(data) {
+      const seen = new Set();
+      return data.filter(record => {
+        if (seen.has(record["才能名"])) {
+          return false;
+        } else {
+          seen.add(record["才能名"]);
+          return true;
+        }
+      });
+    }
+
+    /***********************************************
+     * 全体フィルタ処理
+     ***********************************************/
+    function filterCSVData() {
+      const selectedIndex = document.getElementById('raceConditionSelect').value;
+      let rc = null;
+      if (selectedIndex !== "") {
+        rc = raceConditions[parseInt(selectedIndex, 10)];
+      }
+      const jockeySelected = getCheckedValues('jockey');
+      const weatherSelected = getCheckedValues('weather');
+      const babaSelected = getCheckedValues('baba');
+      const effectSelected = getCheckedValues('effect');
+
+      let filtered = csvData.filter(record => {
+        // 除外対象
+        if (jyogai.includes(record["才能名"])) return false;
+        const cond = record["発揮条件"];
+        const effect = record["発揮効果"] || "";
+        let raceConditionPassed = true;
+        if (rc) {
+          raceConditionPassed = checkDistance(cond, rc.distance) &&
+                                checkTurfDirt(cond, rc.turfDirt) &&
+                                checkRacecourse(cond, rc.racecourse) &&
+                                checkRaceName(cond, rc.race);
+        }
+        const jockeyPassed = checkJockey(cond, jockeySelected);
+        const weatherPassed = checkWeather(cond, weatherSelected);
+        const babaPassed = checkBaba(cond, babaSelected);
+        const effectPassed = checkEffect(effect, effectSelected);
+        return raceConditionPassed && jockeyPassed && weatherPassed && babaPassed && effectPassed;
+      });
+
+      // 発揮位置別ソートが有効なら
+      const sortEffectChecked = document.getElementById('sortEffect').checked;
+      if (sortEffectChecked) {
+        filtered.sort((a, b) => {
+          const sortA = getSortCategory(a["発揮効果"] || "");
+          const sortB = getSortCategory(b["発揮効果"] || "");
+          if (sortA.category !== sortB.category) {
+            return sortA.category - sortB.category;
+          }
+          if (sortA.category === 5 && sortB.category === 5) {
+            return sortB.goalDistance - sortA.goalDistance;
+          }
+          return 0;
+        });
+      }
+      filtered = removeDuplicates(filtered);
+      updateTable(filtered);
+    }
+
+    // 各フィルター変更時に実行
+    document.getElementById('raceConditionSelect').addEventListener('change', filterCSVData);
+    document.querySelectorAll('input[type="checkbox"]').forEach(cb => {
+      cb.addEventListener('change', filterCSVData);
+    });
+  </script>
+</body>
+</html>
