@@ -28,6 +28,7 @@
     .filter-panel {
       width: 25%;
       padding: 10px;
+      padding-left: 20px; /* 左側に余白を追加 */
       box-sizing: border-box;
       border-right: 1px solid #ccc;
       overflow-y: auto;
@@ -46,23 +47,22 @@
       gap: 10px;
       align-items: center;
     }
-    /* 天候グループ：ラベルテキスト末尾に全角スペースを追加 */
+    /* 天候グループ：ラベル末尾に全角スペースを追加 */
     .checkboxes.weather label::after {
       content: "　";
     }
-    /* 馬場グループ：ラベルテキスト末尾に全角スペースを追加 */
+    /* 馬場グループ：ラベル末尾に全角スペースを追加 */
     .checkboxes.baba label::after {
       content: "　";
     }
-    /* 右側テーブル領域 */
+    /* 右側テーブル領域：横スクロールを有効に */
     .table-panel {
       width: 75%;
       padding: 10px;
       box-sizing: border-box;
       max-height: 100vh;
       overflow-y: auto;
-      overflow-x: hidden;
-      
+      overflow-x: auto;
     }
     /* テーブル固定レイアウトと列幅指定 */
     table {
@@ -71,10 +71,10 @@
       border-collapse: collapse;
     }
     colgroup col {
-      /* ご指定の幅 */
+      /* 固定列幅（指定通り） */
       /* 才能名:150px, 常時:60px, 発動位置:70px, コンディション:70px, 縛り:70px, 発揮効果:350px, 発揮条件:350px, 発揮対象:100px, 発揮確率:80px */
     }
-    /* テーブルセル：全テキスト表示（折り返し） */
+    /* テーブルセル：全テキスト表示（折り返し）＋フォントサイズ12pt */
     th, td {
       border: 1px solid #ccc;
       padding: 5px;
@@ -83,6 +83,7 @@
       white-space: normal;
       word-break: break-word;
       overflow: visible;
+      font-size: 12pt;
     }
     /* テーブルヘッダー固定 */
     th {
@@ -144,7 +145,6 @@
         <option value="37">東京大賞典</option>
       </select>
 
-     
       <!-- 騎乗指示グループ -->
       <div class="filter-group">
         <h4>騎乗指示</h4>
@@ -161,10 +161,10 @@
       <div class="filter-group">
         <h4>天候</h4>
         <div class="checkboxes weather">
-          <label><input type="checkbox" name="weather" value="晴"> 晴</label>
-          <label><input type="checkbox" name="weather" value="曇"> 曇</label>
-          <label><input type="checkbox" name="weather" value="雨"> 雨</label>
-          <label><input type="checkbox" name="weather" value="雪"> 雪</label>
+          <label><input type="checkbox" name="weather" value="晴"> 晴　</label>
+          <label><input type="checkbox" name="weather" value="曇"> 曇　</label>
+          <label><input type="checkbox" name="weather" value="雨"> 雨　</label>
+          <label><input type="checkbox" name="weather" value="雪"> 雪　</label>
           <label><input type="checkbox" name="weather" value="天候条件なし"> 天候条件なし</label>
         </div>
       </div>
@@ -173,10 +173,10 @@
       <div class="filter-group">
         <h4>馬場</h4>
         <div class="checkboxes baba">
-          <label><input type="checkbox" name="baba" value="良"> 良</label>
-          <label><input type="checkbox" name="baba" value="稍重"> 稍重</label>
-          <label><input type="checkbox" name="baba" value="重"> 重</label>
-          <label><input type="checkbox" name="baba" value="不良"> 不良</label>
+          <label><input type="checkbox" name="baba" value="良"> 良　</label>
+          <label><input type="checkbox" name="baba" value="稍重"> 稍重　</label>
+          <label><input type="checkbox" name="baba" value="重"> 重　</label>
+          <label><input type="checkbox" name="baba" value="不良"> 不良　</label>
           <label><input type="checkbox" name="baba" value="馬場条件なし"> 馬場条件なし</label>
         </div>
       </div>
@@ -201,16 +201,11 @@
         <h4>並び順</h4>
         <div class="checkboxes">
           <label><input type="checkbox" id="sortEffect"> 発揮位置別ソート</label>
-          
-          <br>
-          <br>
-
+          <br><br>
           <small><small>
           ※以下の順にソートします<br>
           常時のみ→スタート→コーナー→直線→〇〇m以内→それ以外<br>
-
           </small></small><br>
-
         </div>
       </div>
     </div>
@@ -445,16 +440,15 @@
       }
     }
 
-    // 【修正】馬場フィルター：天候フィルターと同様のロジックに
+    // 【修正】馬場フィルター：天候フィルターと同様のロジック
     function checkBaba(conditionStr, selectedOptions) {
       if (selectedOptions.length === 0) return true;
       if (conditionStr.indexOf("馬場状態が") !== -1) {
-        const selectedBabas = selectedOptions.filter(val => val !== "馬場条件なし");
-        if (selectedBabas.length === 0) return false;
-        for (let b of selectedBabas) {
-          if (conditionStr.indexOf(b) !== -1 && conditionStr.indexOf("馬場状態が") !== -1 && new RegExp("馬場状態が[\\s\u3000]*" + b).test(conditionStr)) {
-            return true;
-          }
+        const selectedStates = selectedOptions.filter(val => val !== "馬場条件なし");
+        if (selectedStates.length === 0) return false;
+        for (let state of selectedStates) {
+          let regex = new RegExp("馬場状態が[\\s\u3000]*" + state);
+          if (regex.test(conditionStr)) return true;
         }
         return false;
       } else {
@@ -595,44 +589,44 @@
         tdPosition.textContent = getActivationPosition(record["発揮効果"] || "");
         tr.appendChild(tdPosition);
 
-        // コンディション列（14pt）
+        // コンディション列（12pt）
         const tdConditionCol = document.createElement('td');
         tdConditionCol.textContent = getCondition(record["発揮条件"] || "");
-        tdConditionCol.style.fontSize = "14pt";
+        tdConditionCol.style.fontSize = "12pt";
         tr.appendChild(tdConditionCol);
 
-        // 縛り列（14pt）
+        // 縛り列（12pt）
         const tdRestriction = document.createElement('td');
         tdRestriction.textContent = getRestriction(record["発揮条件"] || "");
-        tdRestriction.style.fontSize = "14pt";
+        tdRestriction.style.fontSize = "12pt";
         tr.appendChild(tdRestriction);
 
-        // 発揮効果（改行処理、14pt）
+        // 発揮効果（改行処理、12pt）
         const tdEffect = document.createElement('td');
         let effectText = record["発揮効果"] || "";
         effectText = effectText.replace(/\s+(\u30FB)/g, '<br>$1');
         tdEffect.innerHTML = effectText;
-        tdEffect.style.fontSize = "14pt";
+        tdEffect.style.fontSize = "12pt";
         tr.appendChild(tdEffect);
 
-        // 発揮条件（改行処理、14pt）
+        // 発揮条件（改行処理、12pt）
         const tdCond = document.createElement('td');
         let condText = record["発揮条件"] || "";
         condText = condText.replace(/\s+(\u30FB)/g, '<br>$1');
         tdCond.innerHTML = condText;
-        tdCond.style.fontSize = "14pt";
+        tdCond.style.fontSize = "12pt";
         tr.appendChild(tdCond);
 
-        // 発揮対象（14pt）
+        // 発揮対象（12pt）
         const tdTarget = document.createElement('td');
         tdTarget.textContent = record["発揮対象"] || "";
-        tdTarget.style.fontSize = "14pt";
+        tdTarget.style.fontSize = "12pt";
         tr.appendChild(tdTarget);
 
-        // 発揮確率（14pt）
+        // 発揮確率（12pt）
         const tdProb = document.createElement('td');
         tdProb.textContent = record["発揮確率"] || "";
-        tdProb.style.fontSize = "14pt";
+        tdProb.style.fontSize = "12pt";
         tr.appendChild(tdProb);
 
         tbody.appendChild(tr);
