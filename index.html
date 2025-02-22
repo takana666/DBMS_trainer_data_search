@@ -4,9 +4,9 @@
   <meta charset="UTF-8">
   <title>DBMS調教師才能データ検索(仮テスト中)</title>
   <style>
-    /* 全体基本文字サイズ：15pt */
+    /* 全体基本文字サイズ：12pt */
     .filter-panel, .table-panel {
-      font-size: 15pt;
+      font-size: 12pt;
     }
     /* チェックボックスは縦位置中央 */
     input[type="checkbox"] {
@@ -38,7 +38,7 @@
     }
     .filter-group h4 {
       margin: 10px 0 5px;
-      font-size: 15pt;
+      font-size: 12pt;
     }
     .checkboxes {
       display: flex;
@@ -61,6 +61,8 @@
       box-sizing: border-box;
       max-height: 100vh;
       overflow-y: auto;
+      overflow-x: hidden;
+      
     }
     /* テーブル固定レイアウトと列幅指定 */
     table {
@@ -199,7 +201,8 @@
         <h4>並び順</h4>
         <div class="checkboxes">
           <label><input type="checkbox" id="sortEffect"> 発揮位置別ソート</label>
-
+          
+          <br>
           <br>
 
           <small><small>
