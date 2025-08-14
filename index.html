@@ -104,7 +104,7 @@
 
       <br>
       <h3><small>特定レースや年齢条件等、一部上手くフィルタ出来ない項目があります。ご注意ください</small></h3>
-      <h3><small>データ更新日：2025/08/02</small></h3>
+      <h3><small>データ更新日：<span id="updateDate">取得中…</span></small></h3>
       
       <br>
       <h4>レース選択</h4>
@@ -252,6 +252,50 @@
   </div>
 
   <script>
+
+  // 追加：data.csvのLast-ModifiedをJSTで表示
+  async function setUpdateDateFromCSV() {
+    try {
+      // 最新ヘッダを取りに行く（キャッシュ回避）
+      const res = await fetch('data.csv', { method: 'HEAD', cache: 'no-cache' });
+      const lastMod = res.headers.get('last-modified');
+
+      const target = document.getElementById('updateDate');
+      if (!target) return;
+
+      if (lastMod) {
+        const d = new Date(lastMod);
+        // 日本時間で YYYY/MM/DD 表示
+        const jst = new Intl.DateTimeFormat('ja-JP', {
+          timeZone: 'Asia/Tokyo',
+          year: 'numeric',
+          month: '2-digit',
+          day: '2-digit'
+        }).format(d);
+        target.textContent = jst;
+      } else {
+        // ヘッダが無い場合は当日の日付を表示（フォールバック）
+        const todayJst = new Intl.DateTimeFormat('ja-JP', {
+          timeZone: 'Asia/Tokyo',
+          year: 'numeric',
+          month: '2-digit',
+          day: '2-digit'
+        }).format(new Date());
+        target.textContent = todayJst;
+      }
+    } catch (e) {
+      // 失敗時はハイフン表示
+      const target = document.getElementById('updateDate');
+      if (target) target.textContent = '—';
+      console.error(e);
+    }
+  }
+
+  // 追加：ページ読み込み時に実行
+  setUpdateDateFromCSV();
+
+
+    
     // 除外対象の才能名（常に表示しない）
     const jyogai = ['Cavaliere', '龍嘶鳳冠', 'Chevalier', '虚空宿星', '人馬一体', '人馬二体', '憧憬燎火', '獅子奮迅', '未来鳳花', '気炎万丈', '天心炯眼', '意思疎通', '以心伝心', '臥竜鳳雛', '一蓮托生', '意気投合', '英姿颯爽', '寸歩不離', '神色自若', '渾然一体', '不離一体', '鼓舞激励', '機知奇策', '形影一如', '一心同体', '同腹一心', 'いいこだね！', '玉鳳舞桐花', '少壮気鋭', '中間管理録‥！', '不借身命', '王冠', '恩賞', 'Obelisk', '矜持', '燵人', '胆気', '胆力', '追撃', '追走', '蛇めっ‥！', '魅了', '憂駿', '阿吽之息'];
 
@@ -713,5 +757,6 @@
   </script>
 </body>
 </html>
+
 
 
