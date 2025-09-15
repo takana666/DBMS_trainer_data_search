@@ -94,6 +94,16 @@
       border-bottom: 2px solid #ccc;
       box-shadow: 0 2px 2px 0 rgba(0,0,0,0.5);
     }
+    
+    /* 注意書き部分 */    
+    .update-note { font-weight: normal; margin: 8px 0; }
+    .update-note__title { margin: 0 0 6px; font-weight: normal; }
+    .update-note__list { margin: 0 6px 6px 1.2em; padding: 0; list-style: none; }
+    .update-note__list li { line-height: 1.6; }
+    .update-note__list li::before { content: "・"; margin-right: .25em; position: relative; left: -.6em; }
+    .update-note__caution { margin: 0; color: #B00020; font-weight: normal; }
+
+
   </style>
 </head>
 <body>
@@ -103,7 +113,18 @@
       <h3>DBMS調教師才能データ検索(仮テスト中)</h3>
 
       <br>
-      <h3><small>特定レースや年齢条件等、一部上手くフィルタ出来ない項目があります。ご注意ください</small></h3>
+
+      <div class="update-note" role="note" aria-label="更新情報">
+        <p class="update-note__title">2025/09/15：以下の修正を行いました</p>
+        <ul class="update-note__list">
+          <li>馬場条件におけるフィルタ不具合を修正しました</li>
+          <li>発動距離抽出における表記ゆれに対応しました（星霜、真夏夜夢）</li>
+          <li>年齢条件に対応しました</li>
+        </ul>
+        <p class="update-note__caution">※特定レースのみの条件（七夕賞等）のフィルタには現状対応していません<br>
+        ※まだバグがある可能性が高いので、必ず確認の上ご利用ください</p>
+      </div>
+
       <h3><small>データ更新日：<span id="updateDate">取得中…</span></small></h3>
       
       <br>
@@ -301,45 +322,50 @@
 
     // レース条件（プルダウン用／プログラム内で使用）
     const raceConditions = [
-      { race: "フェブラリーステークス", distance: "1600", turfDirt: "ダート", racecourse: "東京" },
-      { race: "高松宮記念",             distance: "1200", turfDirt: "芝",   racecourse: "中京" },
-      { race: "アルクォズスプリント",   distance: "1200", turfDirt: "芝",   racecourse: "メイダン" },
-      { race: "ドバイターフ",           distance: "1800", turfDirt: "芝",   racecourse: "メイダン" },
-      { race: "ドバイシーマクラシック", distance: "2410", turfDirt: "芝",   racecourse: "メイダン" },
-      { race: "ドバイゴールデンシャヒーン", distance: "1200", turfDirt: "ダート", racecourse: "メイダン" },
-      { race: "ドバイワールドカップ",   distance: "2000", turfDirt: "ダート", racecourse: "メイダン" },
-      { race: "大阪杯",                 distance: "2000", turfDirt: "芝",   racecourse: "阪神" },
-      { race: "桜花賞",                 distance: "1600", turfDirt: "芝",   racecourse: "阪神" },
-      { race: "皐月賞",                 distance: "2000", turfDirt: "芝",   racecourse: "中山" },
-      { race: "クイーンエリザベス２世カップ", distance: "2000", turfDirt: "芝", racecourse: "シャティン" },
-      { race: "天皇賞(春)",             distance: "3200", turfDirt: "芝",   racecourse: "京都" },
-      { race: "ＮＨＫマイルカップ",     distance: "1600", turfDirt: "芝",   racecourse: "東京" },
-      { race: "ヴィクトリアマイル",     distance: "1600", turfDirt: "芝",   racecourse: "東京" },
-      { race: "オークス",               distance: "2400", turfDirt: "芝",   racecourse: "東京" },
-      { race: "日本ダービー",           distance: "2400", turfDirt: "芝",   racecourse: "東京" },
-      { race: "安田記念",               distance: "1600", turfDirt: "芝",   racecourse: "東京" },
-      { race: "宝塚記念",               distance: "2200", turfDirt: "芝",   racecourse: "阪神" },
-      { race: "帝王賞",                 distance: "2000", turfDirt: "ダート", racecourse: "大井（夜）" },
-      { race: "ジャパンダートダービー",   distance: "2000", turfDirt: "ダート", racecourse: "大井（夜）" },
-      { race: "スプリンターズステークス", distance: "1200", turfDirt: "芝",   racecourse: "中山" },
-      { race: "凱旋門賞",               distance: "2400", turfDirt: "芝",   racecourse: "ロンシャン" },
-      { race: "秋華賞",                 distance: "2000", turfDirt: "芝",   racecourse: "京都" },
-      { race: "菊花賞",                 distance: "3000", turfDirt: "芝",   racecourse: "京都" },
-      { race: "天皇賞(秋)",             distance: "2000", turfDirt: "芝",   racecourse: "東京" },
-      { race: "エリザベス女王杯",         distance: "2200", turfDirt: "芝",   racecourse: "京都" },
-      { race: "マイルチャンピオンシップ", distance: "1600", turfDirt: "芝",   racecourse: "京都" },
-      { race: "ジャパンカップ",         distance: "2400", turfDirt: "芝",   racecourse: "東京" },
-      { race: "チャンピオンズカップ",     distance: "1800", turfDirt: "ダート", racecourse: "中京" },
-      { race: "阪神ジュベナイルフィリーズ", distance: "1600", turfDirt: "芝",   racecourse: "阪神" },
-      { race: "香港スプリント",         distance: "1200", turfDirt: "芝",   racecourse: "シャティン" },
-      { race: "香港マイル",             distance: "1600", turfDirt: "芝",   racecourse: "シャティン" },
-      { race: "香港カップ",             distance: "2000", turfDirt: "芝",   racecourse: "シャティン" },
-      { race: "香港ヴァーズ",           distance: "2400", turfDirt: "芝",   racecourse: "シャティン" },
-      { race: "朝日杯フューチュリティステークス", distance: "1600", turfDirt: "芝", racecourse: "阪神" },
-      { race: "ホープフルステークス",     distance: "2000", turfDirt: "芝",   racecourse: "中山" },
-      { race: "有馬記念",               distance: "2500", turfDirt: "芝",   racecourse: "中山" },
-      { race: "東京大賞典",             distance: "2000", turfDirt: "ダート", racecourse: "大井" }
+      { race: "フェブラリーステークス", distance: "1600", turfDirt: "ダート", racecourse: "東京",   age: { min: 4, max: null, label: "4歳以上" } },
+      { race: "高松宮記念",               distance: "1200", turfDirt: "芝",   racecourse: "中京",   age: { min: 4, max: null, label: "4歳以上" } },
+      { race: "アルクォズスプリント",     distance: "1200", turfDirt: "芝",   racecourse: "メイダン", age: { min: 3, max: null, label: "3歳以上" } },
+      { race: "ドバイターフ",             distance: "1800", turfDirt: "芝",   racecourse: "メイダン", age: { min: 4, max: null, label: "4歳以上" } },
+      { race: "ドバイシーマクラシック",   distance: "2410", turfDirt: "芝",   racecourse: "メイダン", age: { min: 4, max: null, label: "4歳以上" } },
+      { race: "ドバイゴールデンシャヒーン", distance: "1200", turfDirt: "ダート", racecourse: "メイダン", age: { min: 4, max: null, label: "4歳以上" } },
+      { race: "ドバイワールドカップ",     distance: "2000", turfDirt: "ダート", racecourse: "メイダン", age: { min: 4, max: null, label: "4歳以上" } },
+
+      { race: "大阪杯",                   distance: "2000", turfDirt: "芝",   racecourse: "阪神",   age: { min: 4, max: null, label: "4歳以上" } },
+      { race: "桜花賞",                   distance: "1600", turfDirt: "芝",   racecourse: "阪神",   age: { min: 3, max: 3,    label: "3歳のみ" } },
+      { race: "皐月賞",                   distance: "2000", turfDirt: "芝",   racecourse: "中山",   age: { min: 3, max: 3,    label: "3歳のみ" } },
+      { race: "クイーンエリザベス２世カップ", distance: "2000", turfDirt: "芝", racecourse: "シャティン", age: { min: 3, max: null, label: "3歳以上" } },
+      { race: "天皇賞(春)",               distance: "3200", turfDirt: "芝",   racecourse: "京都",   age: { min: 4, max: null, label: "4歳以上" } },
+      { race: "ＮＨＫマイルカップ",       distance: "1600", turfDirt: "芝",   racecourse: "東京",   age: { min: 3, max: 3,    label: "3歳のみ" } },
+      { race: "ヴィクトリアマイル",       distance: "1600", turfDirt: "芝",   racecourse: "東京",   age: { min: 4, max: null, label: "4歳以上" } },
+      { race: "オークス",                 distance: "2400", turfDirt: "芝",   racecourse: "東京",   age: { min: 3, max: 3,    label: "3歳のみ" } },
+      { race: "日本ダービー",             distance: "2400", turfDirt: "芝",   racecourse: "東京",   age: { min: 3, max: 3,    label: "3歳のみ" } },
+      { race: "安田記念",                 distance: "1600", turfDirt: "芝",   racecourse: "東京",   age: { min: 3, max: null, label: "3歳以上" } },
+      { race: "宝塚記念",                 distance: "2200", turfDirt: "芝",   racecourse: "阪神",   age: { min: 3, max: null, label: "3歳以上" } },
+      { race: "帝王賞",                   distance: "2000", turfDirt: "ダート", racecourse: "大井（夜）", age: { min: 4, max: null, label: "4歳以上" } },
+      { race: "ジャパンダートダービー",   distance: "2000", turfDirt: "ダート", racecourse: "大井（夜）", age: { min: 3, max: 3, label: "3歳のみ" } },
+
+      { race: "スプリンターズステークス", distance: "1200", turfDirt: "芝",   racecourse: "中山",   age: { min: 3, max: null, label: "3歳以上" } },
+      { race: "凱旋門賞",                 distance: "2400", turfDirt: "芝",   racecourse: "ロンシャン", age: { min: 3, max: null, label: "3歳以上" } },
+      { race: "秋華賞",                   distance: "2000", turfDirt: "芝",   racecourse: "京都",   age: { min: 3, max: 3,    label: "3歳のみ" } },
+      { race: "菊花賞",                   distance: "3000", turfDirt: "芝",   racecourse: "京都",   age: { min: 3, max: 3,    label: "3歳のみ" } },
+      { race: "天皇賞(秋)",               distance: "2000", turfDirt: "芝",   racecourse: "東京",   age: { min: 3, max: null, label: "3歳以上" } },
+      { race: "エリザベス女王杯",         distance: "2200", turfDirt: "芝",   racecourse: "京都",   age: { min: 3, max: null, label: "3歳以上" } },
+      { race: "マイルチャンピオンシップ", distance: "1600", turfDirt: "芝",   racecourse: "京都",   age: { min: 3, max: null, label: "3歳以上" } },
+      { race: "ジャパンカップ",           distance: "2400", turfDirt: "芝",   racecourse: "東京",   age: { min: 3, max: null, label: "3歳以上" } },
+      { race: "チャンピオンズカップ",     distance: "1800", turfDirt: "ダート", racecourse: "中京",   age: { min: 3, max: null, label: "3歳以上" } },
+
+      { race: "阪神ジュベナイルフィリーズ", distance: "1600", turfDirt: "芝", racecourse: "阪神",   age: { min: 2, max: 2,    label: "2歳のみ" } },
+      { race: "香港スプリント",           distance: "1200", turfDirt: "芝",   racecourse: "シャティン", age: { min: 3, max: null, label: "3歳以上" } },
+      { race: "香港マイル",               distance: "1600", turfDirt: "芝",   racecourse: "シャティン", age: { min: 3, max: null, label: "3歳以上" } },
+      { race: "香港カップ",               distance: "2000", turfDirt: "芝",   racecourse: "シャティン", age: { min: 3, max: null, label: "3歳以上" } },
+      { race: "香港ヴァーズ",             distance: "2400", turfDirt: "芝",   racecourse: "シャティン", age: { min: 3, max: null, label: "3歳以上" } },
+
+      { race: "朝日杯フューチュリティステークス", distance: "1600", turfDirt: "芝", racecourse: "阪神", age: { min: 2, max: 2, label: "2歳のみ" } },
+      { race: "ホープフルステークス",     distance: "2000", turfDirt: "芝",   racecourse: "中山",   age: { min: 2, max: 2,    label: "2歳のみ" } },
+      { race: "有馬記念",                 distance: "2500", turfDirt: "芝",   racecourse: "中山",   age: { min: 3, max: null, label: "3歳以上" } },
+      { race: "東京大賞典",               distance: "2000", turfDirt: "ダート", racecourse: "大井",   age: { min: 3, max: null, label: "3歳以上" } }
     ];
+
 
     /***********************************************
      * CSVデータ読み込みとテーブル更新処理
@@ -455,6 +481,45 @@
       return true;
     }
 
+
+    /***年齢チェック**/
+    function checkAge(conditionStr, raceAge) {
+    // レース側に年齢ルールが無ければスルー
+    if (!raceAge || (raceAge.min == null && raceAge.max == null)) return true;
+
+    // 才能側（発揮条件）に年齢指定が無ければ適合とみなす（厳密にしたければ false に）
+    if (conditionStr.indexOf("年齢が") === -1) return true;
+
+    // レースが許可する年齢集合（2〜10歳を仮の全域とする）
+    const universe = Array.from({length: 9}, (_,i) => i + 2); // [2..10]
+    const raceAllowed = new Set(
+      universe.filter(a => (raceAge.min==null || a >= raceAge.min) &&
+                          (raceAge.max==null || a <= raceAge.max))
+    );
+
+    // 1) 「年齢が4歳以上」
+    const mGte = conditionStr.match(/年齢が\s*(\d{1,2})歳以上/);
+    if (mGte) {
+      const min = parseInt(mGte[1],10);
+      return universe.some(a => a >= min && raceAllowed.has(a));
+    }
+
+    // 2) 「年齢が4歳、5歳」などの列挙
+    const mListBlock = conditionStr.match(/年齢が([^。]*)/);
+    if (mListBlock) {
+      const nums = Array.from(mListBlock[1].matchAll(/(\d{1,2})\s*歳/g)).map(m => parseInt(m[1],10));
+      if (nums.length > 0) return nums.some(a => raceAllowed.has(a));
+    }
+
+    // 3) 「年齢が3歳」（単数）
+    const mSingle = conditionStr.match(/年齢が\s*(\d{1,2})\s*歳(?!以)/);
+    if (mSingle) return raceAllowed.has(parseInt(mSingle[1],10));
+
+    // マッチしないものは一旦通す
+    return true;
+  }
+
+
     /***********************************************
      * フィルタ用関数（チェックボックス：騎乗指示・天候・馬場）
      ***********************************************/
@@ -491,35 +556,66 @@
       }
     }
 
-    // 【修正】馬場フィルター：天候フィルターと同様のロジック
+    // 馬場フィルター（列挙のみ対応・範囲表記は扱わない／部分一致禁止）
+    // 方針：
+    //  - 「馬場状態が」未記載の行は “どの馬場でも可” として通す
+    //  - 「良・稍重・重・不良」の列挙のみを解釈（「以上／以下／範囲」は非対応）
+    //  - トークン内に距離や他条件が続いていても、状態語だけを厳密抽出
+    //  - 語の重なり対策：不良/稍重を先に抽出し「良/重」への誤爆を防ぐ
     function checkBaba(conditionStr, selectedOptions) {
-      if (selectedOptions.length === 0) return true;
+      // チェックなしなら全通し
+      if (!Array.isArray(selectedOptions) || selectedOptions.length === 0) return true;
 
-      if (conditionStr.includes("馬場状態が")) {
-        const selected = selectedOptions.filter(v => v !== "馬場条件なし");
-        if (selected.length === 0) return false;
+      // 「馬場条件なし」は“未記載の行”にのみ意味があるため、ここでは除外
+      const selected = selectedOptions.filter(v => v !== "馬場条件なし");
 
-        // 「馬場状態が」以降～次のキーワードまでを抽出（過剰マッチ抑制）
-        const after = conditionStr.split("馬場状態が")[1] || "";
-        const stopKeys = ["レース", "コンディション", "天候が", "騎乗指示", "距離", "m"];
-        const stopIdx = stopKeys.map(k => after.indexOf(k)).filter(i => i >= 0)
-                                .reduce((min, i) => Math.min(min, i), after.length);
-        const seg = after.slice(0, stopIdx);
-
-        // 区切り統一：「、」「・」「／」「,」や「または」を統一
-        const tokens = seg.replace(/[／・,]/g, "、")
-                          .replace(/\s*または\s*/g, "、")
-                          .split("、")
-                          .map(s => s.trim())
-                          .filter(Boolean);
-
-        const states = new Set(tokens.filter(t => ["良","稍重","重","不良"].includes(t)));
-        return selected.some(s => states.has(s));
+      // 「馬場状態が」が無い行 → どの馬場でも可（条件2のような未記載ケースを通す）
+      const marker = "馬場状態が";
+      const idx = conditionStr.indexOf(marker);
+      if (idx === -1) {
+        // もし未記載行を除外したい運用に変える場合は、下行を次に置換：
+        // return selectedOptions.includes("馬場条件なし");
+        return true;
       }
 
-      // 馬場条件の記載が無い＝どの馬場でも可 → 通す
-      return true;
-    }  
+      // 「馬場条件なし」しか選ばれていない＝馬場記載がある行は除外
+      if (selected.length === 0) return false;
+
+      // 「馬場状態が」以降から、次の区切り語/句点/改行などまでの断片を切り出す
+      let after = conditionStr.slice(idx + marker.length);
+      const stopKeys = ["。", "レース", "コンディション", "天候が", "騎乗指示", "m", "芝", "ダート", "\n", "\r"];
+      let stop = after.length;
+      for (const k of stopKeys) {
+        const p = after.indexOf(k);
+        if (p >= 0 && p < stop) stop = p;
+      }
+      const seg = after.slice(0, stop).trim();
+
+      // 区切り正規化：読点・スラッシュ・中点・カンマ・全角/半角スペース・「または/もしくは」
+      const parts = seg
+        .replace(/[／・,]/g, "、")
+        .replace(/\s*(または|もしくは)\s*/g, "、")
+        .replace(/[\u0020\u00A0\u3000]+/g, " ") // 連続スペースを1つに
+        .split("、")
+        .map(s => s.trim())
+        .filter(Boolean);
+
+      // トークン内から状態語だけを抽出（長い語優先：不良→稍重→良→重）
+      const STATE_RE = /(不良|稍重|良|重)/g;
+      const mentioned = new Set();
+      for (const part of parts) {
+        let m;
+        while ((m = STATE_RE.exec(part)) !== null) {
+          mentioned.add(m[1]);
+        }
+      }
+
+      // いずれか一致で可（"重" は "稍重" に誤爆しない／"良" は "不良" に誤爆しない）
+      return selected.some(s => mentioned.has(s));
+    }
+
+
+
 
     /***********************************************
      * フィルタ用関数（発揮効果フィルタ）
@@ -530,7 +626,7 @@
         if (option === "常時" && effectStr.indexOf("常時") === -1) return false;
         if (option === "スタート" && effectStr.indexOf("スタート") === -1) return false;
         if (option === "コーナー" && effectStr.indexOf("コーナー") === -1) return false;
-        if (option === "発動距離" && (effectStr.indexOf("ゴールまで") === -1 && effectStr.indexOf("最後の直線") === -1)) return false;
+        if (option === "発動距離" && (effectStr.indexOf("ゴールまで") === -1 && effectStr.indexOf("ゴールから") === -1 && effectStr.indexOf("最後の直線") === -1)) return false;
       }
       return true;
     }
@@ -544,7 +640,8 @@
           effectStr.indexOf("スタート") === -1 &&
           effectStr.indexOf("コーナー") === -1 &&
           effectStr.indexOf("最後の直線") === -1 &&
-          effectStr.indexOf("ゴールまで") === -1) {
+          effectStr.indexOf("ゴールまで") === -1 &&
+          effectStr.indexOf("ゴールから") === -1) {
         return { category: 1, goalDistance: 0 };
       } else if (effectStr.indexOf("スタート") !== -1) {
         return { category: 2, goalDistance: 0 };
@@ -552,11 +649,12 @@
         return { category: 3, goalDistance: 0 };
       } else if (effectStr.indexOf("最後の直線") !== -1) {
         return { category: 4, goalDistance: 0 };
-      } else if (effectStr.indexOf("ゴールまで") !== -1) {
-        let goalRegex = /ゴールまで\s*(\d{1,4})m以内で/g;
+      } else if (effectStr.indexOf("ゴールまで") !== -1 || effectStr.indexOf("ゴールから") !== -1) {
+        // 「ゴールまで」「ゴールから」の両方に対応
+        let goalRegex = /(ゴールまで|ゴールから)\s*(\d{1,4})m以内で/g;
         let max = 0, m;
         while ((m = goalRegex.exec(effectStr)) !== null) {
-          let num = parseInt(m[1], 10);
+          let num = parseInt(m[2], 10);
           if (num > max) max = num;
         }
         return { category: 5, goalDistance: max };
@@ -584,10 +682,11 @@
       if (effectStr.indexOf("最後の直線") !== -1) {
         positions.push("直線");
       }
-      let goalMatches = effectStr.match(/ゴールまで\s*(\d{1,4})m以内で/g);
+      // 「ゴールまで」「ゴールから」の両表記に対応
+      let goalMatches = effectStr.match(/(ゴールまで|ゴールから)\s*(\d{1,4})m以内で/g);
       if (goalMatches) {
         goalMatches.forEach(match => {
-          let num = match.match(/(\d{1,4})/)[1];
+          let num = match.match(/(\d{1,4})/)[1]; // 数値部分は共通
           positions.push(num + "m");
         });
       }
@@ -735,7 +834,8 @@
           raceConditionPassed = checkDistance(cond, rc.distance) &&
                                 checkTurfDirt(cond, rc.turfDirt) &&
                                 checkRacecourse(cond, rc.racecourse) &&
-                                checkRaceName(cond, rc.race);
+                                checkRaceName(cond, rc.race) &&
+                                 checkAge(cond, rc.age);
         }
         const jockeyPassed = checkJockey(cond, jockeySelected);
         const weatherPassed = checkWeather(cond, weatherSelected);
