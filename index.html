@@ -494,18 +494,32 @@
     // 【修正】馬場フィルター：天候フィルターと同様のロジック
     function checkBaba(conditionStr, selectedOptions) {
       if (selectedOptions.length === 0) return true;
-      if (conditionStr.indexOf("馬場状態が") !== -1) {
-        const selectedStates = selectedOptions.filter(val => val !== "馬場条件なし");
-        if (selectedStates.length === 0) return false;
-        for (let state of selectedStates) {
-          let regex = new RegExp("馬場状態が[\\s\u3000]*" + state);
-          if (regex.test(conditionStr)) return true;
-        }
-        return false;
-      } else {
-        return selectedOptions.includes("馬場条件なし");
+
+      if (conditionStr.includes("馬場状態が")) {
+        const selected = selectedOptions.filter(v => v !== "馬場条件なし");
+        if (selected.length === 0) return false;
+
+        // 「馬場状態が」以降～次のキーワードまでを抽出（過剰マッチ抑制）
+        const after = conditionStr.split("馬場状態が")[1] || "";
+        const stopKeys = ["レース", "コンディション", "天候が", "騎乗指示", "距離", "m"];
+        const stopIdx = stopKeys.map(k => after.indexOf(k)).filter(i => i >= 0)
+                                .reduce((min, i) => Math.min(min, i), after.length);
+        const seg = after.slice(0, stopIdx);
+
+        // 区切り統一：「、」「・」「／」「,」や「または」を統一
+        const tokens = seg.replace(/[／・,]/g, "、")
+                          .replace(/\s*または\s*/g, "、")
+                          .split("、")
+                          .map(s => s.trim())
+                          .filter(Boolean);
+
+        const states = new Set(tokens.filter(t => ["良","稍重","重","不良"].includes(t)));
+        return selected.some(s => states.has(s));
       }
-    }
+
+      // 馬場条件の記載が無い＝どの馬場でも可 → 通す
+      return true;
+    }  
 
     /***********************************************
      * フィルタ用関数（発揮効果フィルタ）
@@ -757,6 +771,7 @@
   </script>
 </body>
 </html>
+
 
 
 
