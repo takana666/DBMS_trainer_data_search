@@ -115,12 +115,13 @@
       <br>
 
       <div class="update-note" role="note" aria-label="更新情報">
-        <p class="update-note__title">2026/01/31：以下の修正を行いました</p>
+        <p class="update-note__title">2026/02/08：以下の修正を行いました</p>
         <ul class="update-note__list">
-          <li>非G1レース（小倉大賞典）に対応しました（プルダウンの一番下）</li>
+          <li>並び順おいて直線距離を考慮したソート順機能を追加</li>
 
         </ul>
         <p class="update-note__caution">※特定レースのみの条件（七夕賞等）のフィルタには現状対応していません<br>
+        非G1レース（小倉大賞典）はプルダウンの一番下にあります<br>  
         ※まだバグがある可能性が高いので、必ず確認の上ご利用ください</p>
       </div>
 
@@ -170,6 +171,10 @@
         <option value="37">東京大賞典</option>
         <option value="38">小倉大賞典</option>
       </select>
+
+      <div style="margin-top:6px; font-size:12pt;">
+        直線距離：<span id="straightDistanceInfo">--</span>
+      </div>
 
       <!-- 騎乗指示グループ -->
       <div class="filter-group">
@@ -227,10 +232,17 @@
         <h4>並び順</h4>
         <div class="checkboxes">
           <label><input type="checkbox" id="sortEffect"> 発揮位置別ソート</label>
+          <label style="margin-left:10px;"><input type="checkbox" id="considerStraightDistance"> 直線距離考慮</label>
           <br><br>
           <small><small>
           ※以下の順にソートします<br>
           常時のみ→スタート→コーナー→直線→〇〇m以内→それ以外<br>
+          <br>
+          直線距離考慮をチェックした場合、<br>
+          常時のみ→スタート→コーナー→発動位置＞直線距離→直線距離→発動位置＜曲線距離→それ以外<br>
+          ※直線距離はweb情報ベースであり、ゲーム内距離が同じであるかは不明です<br>
+          <br>
+          中盤発動はソート対象外です<br>
           <br>
           騎手才能等、一部除外しています
           </small></small><br>
@@ -322,49 +334,49 @@
 
     // レース条件（プルダウン用／プログラム内で使用）
     const raceConditions = [
-      { race: "小倉大賞典", distance: "1800", turfDirt: "芝", racecourse: "小倉",   age: { min: 4, max: null, label: "4歳以上" } , grade: "G3" },
-      { race: "フェブラリーステークス", distance: "1600", turfDirt: "ダート", racecourse: "東京",   age: { min: 4, max: null, label: "4歳以上" } , grade: "G1" },
-      { race: "高松宮記念",               distance: "1200", turfDirt: "芝",   racecourse: "中京",   age: { min: 4, max: null, label: "4歳以上" } , grade: "G1" },
-      { race: "アルクォズスプリント",     distance: "1200", turfDirt: "芝",   racecourse: "メイダン", age: { min: 3, max: null, label: "3歳以上" } , grade: "G1" },
-      { race: "ドバイターフ",             distance: "1800", turfDirt: "芝",   racecourse: "メイダン", age: { min: 4, max: null, label: "4歳以上" } , grade: "G1" },
-      { race: "ドバイシーマクラシック",   distance: "2410", turfDirt: "芝",   racecourse: "メイダン", age: { min: 4, max: null, label: "4歳以上" } , grade: "G1" },
-      { race: "ドバイゴールデンシャヒーン", distance: "1200", turfDirt: "ダート", racecourse: "メイダン", age: { min: 4, max: null, label: "4歳以上" } , grade: "G1" },
-      { race: "ドバイワールドカップ",     distance: "2000", turfDirt: "ダート", racecourse: "メイダン", age: { min: 4, max: null, label: "4歳以上" } , grade: "G1" },
+      { race: "小倉大賞典", distance: "1800", turfDirt: "芝", racecourse: "小倉", straight: 293.0,   age: { min: 4, max: null, label: "4歳以上" } , grade: "G3" },
+      { race: "フェブラリーステークス", distance: "1600", turfDirt: "ダート", racecourse: "東京", straight: 501.6,   age: { min: 4, max: null, label: "4歳以上" } , grade: "G1" },
+      { race: "高松宮記念",               distance: "1200", turfDirt: "芝",   racecourse: "中京", straight: 412.5,   age: { min: 4, max: null, label: "4歳以上" } , grade: "G1" },
+      { race: "アルクォズスプリント",     distance: "1200", turfDirt: "芝",   racecourse: "メイダン", straight: 1200, age: { min: 3, max: null, label: "3歳以上" } , grade: "G1" },
+      { race: "ドバイターフ",             distance: "1800", turfDirt: "芝",   racecourse: "メイダン", straight: 450, age: { min: 4, max: null, label: "4歳以上" } , grade: "G1" },
+      { race: "ドバイシーマクラシック",   distance: "2410", turfDirt: "芝",   racecourse: "メイダン", straight: 450, age: { min: 4, max: null, label: "4歳以上" } , grade: "G1" },
+      { race: "ドバイゴールデンシャヒーン", distance: "1200", turfDirt: "ダート", racecourse: "メイダン", straight: 400, age: { min: 4, max: null, label: "4歳以上" } , grade: "G1" },
+      { race: "ドバイワールドカップ",     distance: "2000", turfDirt: "ダート", racecourse: "メイダン", straight: 400, age: { min: 4, max: null, label: "4歳以上" } , grade: "G1" },
 
-      { race: "大阪杯",                   distance: "2000", turfDirt: "芝",   racecourse: "阪神",   age: { min: 4, max: null, label: "4歳以上" } , grade: "G1" },
-      { race: "桜花賞",                   distance: "1600", turfDirt: "芝",   racecourse: "阪神",   age: { min: 3, max: 3,    label: "3歳のみ" } , grade: "G1" },
-      { race: "皐月賞",                   distance: "2000", turfDirt: "芝",   racecourse: "中山",   age: { min: 3, max: 3,    label: "3歳のみ" } , grade: "G1" },
-      { race: "クイーンエリザベス２世カップ", distance: "2000", turfDirt: "芝", racecourse: "シャティン", age: { min: 3, max: null, label: "3歳以上" } , grade: "G1" },
-      { race: "天皇賞(春)",               distance: "3200", turfDirt: "芝",   racecourse: "京都",   age: { min: 4, max: null, label: "4歳以上" } , grade: "G1" },
-      { race: "ＮＨＫマイルカップ",       distance: "1600", turfDirt: "芝",   racecourse: "東京",   age: { min: 3, max: 3,    label: "3歳のみ" } , grade: "G1" },
-      { race: "ヴィクトリアマイル",       distance: "1600", turfDirt: "芝",   racecourse: "東京",   age: { min: 4, max: null, label: "4歳以上" } , grade: "G1" },
-      { race: "オークス",                 distance: "2400", turfDirt: "芝",   racecourse: "東京",   age: { min: 3, max: 3,    label: "3歳のみ" } , grade: "G1" },
-      { race: "日本ダービー",             distance: "2400", turfDirt: "芝",   racecourse: "東京",   age: { min: 3, max: 3,    label: "3歳のみ" } , grade: "G1" },
-      { race: "安田記念",                 distance: "1600", turfDirt: "芝",   racecourse: "東京",   age: { min: 3, max: null, label: "3歳以上" } , grade: "G1" },
-      { race: "宝塚記念",                 distance: "2200", turfDirt: "芝",   racecourse: "阪神",   age: { min: 3, max: null, label: "3歳以上" } , grade: "G1" },
-      { race: "帝王賞",                   distance: "2000", turfDirt: "ダート", racecourse: "大井（夜）", age: { min: 4, max: null, label: "4歳以上" } , grade: "G1" },
-      { race: "ジャパンダートダービー",   distance: "2000", turfDirt: "ダート", racecourse: "大井（夜）", age: { min: 3, max: 3, label: "3歳のみ" } , grade: "G1" },
+      { race: "大阪杯",                   distance: "2000", turfDirt: "芝",   racecourse: "阪神", straight: 356.5,   age: { min: 4, max: null, label: "4歳以上" } , grade: "G1" },
+      { race: "桜花賞",                   distance: "1600", turfDirt: "芝",   racecourse: "阪神", straight: 473.6,   age: { min: 3, max: 3,    label: "3歳のみ" } , grade: "G1" },
+      { race: "皐月賞",                   distance: "2000", turfDirt: "芝",   racecourse: "中山", straight: 310,   age: { min: 3, max: 3,    label: "3歳のみ" } , grade: "G1" },
+      { race: "クイーンエリザベス２世カップ", distance: "2000", turfDirt: "芝", racecourse: "シャティン", straight: 430, age: { min: 3, max: null, label: "3歳以上" } , grade: "G1" },
+      { race: "天皇賞(春)",               distance: "3200", turfDirt: "芝",   racecourse: "京都", straight: 403.7,   age: { min: 4, max: null, label: "4歳以上" } , grade: "G1" },
+      { race: "ＮＨＫマイルカップ",       distance: "1600", turfDirt: "芝",   racecourse: "東京", straight: 525.9,   age: { min: 3, max: 3,    label: "3歳のみ" } , grade: "G1" },
+      { race: "ヴィクトリアマイル",       distance: "1600", turfDirt: "芝",   racecourse: "東京", straight: 525.9,   age: { min: 4, max: null, label: "4歳以上" } , grade: "G1" },
+      { race: "オークス",                 distance: "2400", turfDirt: "芝",   racecourse: "東京", straight: 525.9,   age: { min: 3, max: 3,    label: "3歳のみ" } , grade: "G1" },
+      { race: "日本ダービー",             distance: "2400", turfDirt: "芝",   racecourse: "東京", straight: 525.9,   age: { min: 3, max: 3,    label: "3歳のみ" } , grade: "G1" },
+      { race: "安田記念",                 distance: "1600", turfDirt: "芝",   racecourse: "東京", straight: 525.9,   age: { min: 3, max: null, label: "3歳以上" } , grade: "G1" },
+      { race: "宝塚記念",                 distance: "2200", turfDirt: "芝",   racecourse: "阪神", straight: 356.5,   age: { min: 3, max: null, label: "3歳以上" } , grade: "G1" },
+      { race: "帝王賞",                   distance: "2000", turfDirt: "ダート", racecourse: "大井（夜）", straight: 386, age: { min: 4, max: null, label: "4歳以上" } , grade: "G1" },
+      { race: "ジャパンダートダービー",   distance: "2000", turfDirt: "ダート", racecourse: "大井（夜）", straight: 386, age: { min: 3, max: 3, label: "3歳のみ" } , grade: "G1" },
 
-      { race: "スプリンターズステークス", distance: "1200", turfDirt: "芝",   racecourse: "中山",   age: { min: 3, max: null, label: "3歳以上" } , grade: "G1" },
-      { race: "凱旋門賞",                 distance: "2400", turfDirt: "芝",   racecourse: "ロンシャン", age: { min: 3, max: null, label: "3歳以上" } , grade: "G1" },
-      { race: "秋華賞",                   distance: "2000", turfDirt: "芝",   racecourse: "京都",   age: { min: 3, max: 3,    label: "3歳のみ" } , grade: "G1" },
-      { race: "菊花賞",                   distance: "3000", turfDirt: "芝",   racecourse: "京都",   age: { min: 3, max: 3,    label: "3歳のみ" } , grade: "G1" },
-      { race: "天皇賞(秋)",               distance: "2000", turfDirt: "芝",   racecourse: "東京",   age: { min: 3, max: null, label: "3歳以上" } , grade: "G1" },
-      { race: "エリザベス女王杯",         distance: "2200", turfDirt: "芝",   racecourse: "京都",   age: { min: 3, max: null, label: "3歳以上" } , grade: "G1" },
-      { race: "マイルチャンピオンシップ", distance: "1600", turfDirt: "芝",   racecourse: "京都",   age: { min: 3, max: null, label: "3歳以上" } , grade: "G1" },
-      { race: "ジャパンカップ",           distance: "2400", turfDirt: "芝",   racecourse: "東京",   age: { min: 3, max: null, label: "3歳以上" } , grade: "G1" },
-      { race: "チャンピオンズカップ",     distance: "1800", turfDirt: "ダート", racecourse: "中京",   age: { min: 3, max: null, label: "3歳以上" } , grade: "G1" },
+      { race: "スプリンターズステークス", distance: "1200", turfDirt: "芝",   racecourse: "中山", straight: 310,   age: { min: 3, max: null, label: "3歳以上" } , grade: "G1" },
+      { race: "凱旋門賞",                 distance: "2400", turfDirt: "芝",   racecourse: "ロンシャン", straight: 533, age: { min: 3, max: null, label: "3歳以上" } , grade: "G1" },
+      { race: "秋華賞",                   distance: "2000", turfDirt: "芝",   racecourse: "京都", straight: 328.4,   age: { min: 3, max: 3,    label: "3歳のみ" } , grade: "G1" },
+      { race: "菊花賞",                   distance: "3000", turfDirt: "芝",   racecourse: "京都", straight: 403.7,   age: { min: 3, max: 3,    label: "3歳のみ" } , grade: "G1" },
+      { race: "天皇賞(秋)",               distance: "2000", turfDirt: "芝",   racecourse: "東京", straight: 525.9,   age: { min: 3, max: null, label: "3歳以上" } , grade: "G1" },
+      { race: "エリザベス女王杯",         distance: "2200", turfDirt: "芝",   racecourse: "京都", straight: 403.7,   age: { min: 3, max: null, label: "3歳以上" } , grade: "G1" },
+      { race: "マイルチャンピオンシップ", distance: "1600", turfDirt: "芝",   racecourse: "京都", straight: 403.7,   age: { min: 3, max: null, label: "3歳以上" } , grade: "G1" },
+      { race: "ジャパンカップ",           distance: "2400", turfDirt: "芝",   racecourse: "東京", straight: 525.9,   age: { min: 3, max: null, label: "3歳以上" } , grade: "G1" },
+      { race: "チャンピオンズカップ",     distance: "1800", turfDirt: "ダート", racecourse: "中京", straight: 410.7,   age: { min: 3, max: null, label: "3歳以上" } , grade: "G1" },
 
-      { race: "阪神ジュベナイルフィリーズ", distance: "1600", turfDirt: "芝", racecourse: "阪神",   age: { min: 2, max: 2,    label: "2歳のみ" } , grade: "G1" },
-      { race: "香港スプリント",           distance: "1200", turfDirt: "芝",   racecourse: "シャティン", age: { min: 3, max: null, label: "3歳以上" } , grade: "G1" },
-      { race: "香港マイル",               distance: "1600", turfDirt: "芝",   racecourse: "シャティン", age: { min: 3, max: null, label: "3歳以上" } , grade: "G1" },
-      { race: "香港カップ",               distance: "2000", turfDirt: "芝",   racecourse: "シャティン", age: { min: 3, max: null, label: "3歳以上" } , grade: "G1" },
-      { race: "香港ヴァーズ",             distance: "2400", turfDirt: "芝",   racecourse: "シャティン", age: { min: 3, max: null, label: "3歳以上" } , grade: "G1" },
+      { race: "阪神ジュベナイルフィリーズ", distance: "1600", turfDirt: "芝", racecourse: "阪神", straight: 473.6,   age: { min: 2, max: 2,    label: "2歳のみ" } , grade: "G1" },
+      { race: "香港スプリント",           distance: "1200", turfDirt: "芝",   racecourse: "シャティン", straight: 430, age: { min: 3, max: null, label: "3歳以上" } , grade: "G1" },
+      { race: "香港マイル",               distance: "1600", turfDirt: "芝",   racecourse: "シャティン", straight: 430, age: { min: 3, max: null, label: "3歳以上" } , grade: "G1" },
+      { race: "香港カップ",               distance: "2000", turfDirt: "芝",   racecourse: "シャティン", straight: 430, age: { min: 3, max: null, label: "3歳以上" } , grade: "G1" },
+      { race: "香港ヴァーズ",             distance: "2400", turfDirt: "芝",   racecourse: "シャティン", straight: 430, age: { min: 3, max: null, label: "3歳以上" } , grade: "G1" },
 
-      { race: "朝日杯フューチュリティステークス", distance: "1600", turfDirt: "芝", racecourse: "阪神", age: { min: 2, max: 2, label: "2歳のみ" } , grade: "G1" },
-      { race: "ホープフルステークス",     distance: "2000", turfDirt: "芝",   racecourse: "中山",   age: { min: 2, max: 2,    label: "2歳のみ" } , grade: "G1" },
-      { race: "有馬記念",                 distance: "2500", turfDirt: "芝",   racecourse: "中山",   age: { min: 3, max: null, label: "3歳以上" } , grade: "G1" },
-      { race: "東京大賞典",               distance: "2000", turfDirt: "ダート", racecourse: "大井",   age: { min: 3, max: null, label: "3歳以上" , grade: "G1"} }
+      { race: "朝日杯フューチュリティステークス", distance: "1600", turfDirt: "芝", racecourse: "阪神", straight: 473.6, age: { min: 2, max: 2, label: "2歳のみ" } , grade: "G1" },
+      { race: "ホープフルステークス",     distance: "2000", turfDirt: "芝",   racecourse: "中山", straight: 310,   age: { min: 2, max: 2,    label: "2歳のみ" } , grade: "G1" },
+      { race: "有馬記念",                 distance: "2500", turfDirt: "芝",   racecourse: "中山", straight: 310,   age: { min: 3, max: null, label: "3歳以上" } , grade: "G1" },
+      { race: "東京大賞典",               distance: "2000", turfDirt: "ダート", racecourse: "大井", straight: 386,  age: { min: 3, max: null, label: "3歳以上" } , grade: "G1" }
     ];
 
 
@@ -702,7 +714,7 @@
     /***********************************************
      * 発揮効果によるソート用関数
      ***********************************************/
-    function getSortCategory(effectStr) {
+    function getSortCategory(effectStr, considerStraight, straightDistance) {
       if (!effectStr) return { category: 6, goalDistance: 0 };
       if (effectStr.indexOf("常時") !== -1 &&
           effectStr.indexOf("スタート") === -1 &&
@@ -716,6 +728,9 @@
       } else if (effectStr.indexOf("コーナー") !== -1) {
         return { category: 3, goalDistance: 0 };
       } else if (effectStr.indexOf("最後の直線") !== -1) {
+        if (considerStraight && typeof straightDistance === "number" && straightDistance > 0) {
+          return { category: 5, goalDistance: straightDistance };
+        }
         return { category: 4, goalDistance: 0 };
       } else if (effectStr.indexOf("ゴールまで") !== -1 || effectStr.indexOf("ゴールから") !== -1) {
         // 「ゴールまで」「ゴールから」の両方に対応
@@ -907,6 +922,17 @@
         }
       }
 
+
+      // 直線距離表示（ユーザー確認用）
+      const straightInfoEl = document.getElementById("straightDistanceInfo");
+      if (straightInfoEl) {
+        if (rc && typeof rc.straight === "number") {
+          straightInfoEl.textContent = rc.straight + "m";
+        } else {
+          straightInfoEl.textContent = "--";
+        }
+      }
+
       const jockeySelected = getCheckedValues('jockey');
       const weatherSelected = getCheckedValues('weather');
       const babaSelected = getCheckedValues('baba');
@@ -939,8 +965,12 @@
 
       if (sortEffectChecked) {
         filtered.sort((a, b) => {
-          const sortA = getSortCategory(a["発揮効果"] || "");
-          const sortB = getSortCategory(b["発揮効果"] || "");
+          const considerEl = document.getElementById("considerStraightDistance");
+          const considerStraight = considerEl ? considerEl.checked : false;
+          const straightDistance = (rc && typeof rc.straight === "number") ? rc.straight : null;
+
+          const sortA = getSortCategory(a["発揮効果"] || "", considerStraight, straightDistance);
+          const sortB = getSortCategory(b["発揮効果"] || "", considerStraight, straightDistance);
           if (sortA.category !== sortB.category) {
             return sortA.category - sortB.category;
           }
