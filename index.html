@@ -115,13 +115,13 @@
       <br>
 
       <div class="update-note" role="note" aria-label="更新情報">
-        <p class="update-note__title">2026/02/08：以下の修正を行いました</p>
+        <p class="update-note__title">2026/02/23：以下の修正を行いました</p>
         <ul class="update-note__list">
-          <li>並び順おいて直線距離を考慮したソート順機能を追加</li>
+          <li>オーシャンステークスを追加</li>
 
         </ul>
         <p class="update-note__caution">※特定レースのみの条件（七夕賞等）のフィルタには現状対応していません<br>
-        非G1レース（小倉大賞典）はプルダウンの一番下にあります<br>  
+        非G1レースはプルダウンの一番下にあります<br>  
         ※まだバグがある可能性が高いので、必ず確認の上ご利用ください</p>
       </div>
 
@@ -169,7 +169,7 @@
         <option value="35">ホープフルステークス</option>
         <option value="36">有馬記念</option>
         <option value="37">東京大賞典</option>
-        <option value="38">小倉大賞典</option>
+        <option value="38">オーシャンステークス</option>
       </select>
 
       <div style="margin-top:6px; font-size:12pt;">
@@ -334,7 +334,7 @@
 
     // レース条件（プルダウン用／プログラム内で使用）
     const raceConditions = [
-      { race: "小倉大賞典", distance: "1800", turfDirt: "芝", racecourse: "小倉", straight: 293.0,   age: { min: 4, max: null, label: "4歳以上" } , grade: "G3" },
+      { race: "オーシャンステークス", distance: "1200", turfDirt: "芝", racecourse: "中山", straight: 310,   age: { min: 4, max: null, label: "4歳以上" } , grade: "G3" },
       { race: "フェブラリーステークス", distance: "1600", turfDirt: "ダート", racecourse: "東京", straight: 501.6,   age: { min: 4, max: null, label: "4歳以上" } , grade: "G1" },
       { race: "高松宮記念",               distance: "1200", turfDirt: "芝",   racecourse: "中京", straight: 412.5,   age: { min: 4, max: null, label: "4歳以上" } , grade: "G1" },
       { race: "アルクォズスプリント",     distance: "1200", turfDirt: "芝",   racecourse: "メイダン", straight: 1200, age: { min: 3, max: null, label: "3歳以上" } , grade: "G1" },
@@ -655,7 +655,7 @@
       if (idx === -1) {
         // もし未記載行を除外したい運用に変える場合は、下行を次に置換：
         // return selectedOptions.includes("馬場条件なし");
-        return true;
+        return selectedOptions.includes("馬場条件なし");
       }
 
       // 「馬場条件なし」しか選ばれていない＝馬場記載がある行は除外
