@@ -115,9 +115,10 @@
       <br>
 
       <div class="update-note" role="note" aria-label="更新情報">
-        <p class="update-note__title">2026/02/23：以下の修正を行いました</p>
+        <p class="update-note__title">2026/03/25：以下の修正を行いました</p>
         <ul class="update-note__list">
-          <li>オーシャンステークスを追加</li>
+          <li>読売マイラーズカップを追加</li>
+          <li>バグ修正</li>
 
         </ul>
         <p class="update-note__caution">※特定レースのみの条件（七夕賞等）のフィルタには現状対応していません<br>
@@ -169,7 +170,7 @@
         <option value="35">ホープフルステークス</option>
         <option value="36">有馬記念</option>
         <option value="37">東京大賞典</option>
-        <option value="38">オーシャンステークス</option>
+        <option value="38">読売マイラーズカップ</option>
       </select>
 
       <div style="margin-top:6px; font-size:12pt;">
@@ -334,7 +335,7 @@
 
     // レース条件（プルダウン用／プログラム内で使用）
     const raceConditions = [
-      { race: "オーシャンステークス", distance: "1200", turfDirt: "芝", racecourse: "中山", straight: 310,   age: { min: 4, max: null, label: "4歳以上" } , grade: "G3" },
+      { race: "読売マイラーズカップ", distance: "1600", turfDirt: "芝", racecourse: "京都", straight: 403.7,   age: { min: 4, max: null, label: "4歳以上" } , grade: "G2" },
       { race: "フェブラリーステークス", distance: "1600", turfDirt: "ダート", racecourse: "東京", straight: 501.6,   age: { min: 4, max: null, label: "4歳以上" } , grade: "G1" },
       { race: "高松宮記念",               distance: "1200", turfDirt: "芝",   racecourse: "中京", straight: 412.5,   age: { min: 4, max: null, label: "4歳以上" } , grade: "G1" },
       { race: "アルクォズスプリント",     distance: "1200", turfDirt: "芝",   racecourse: "メイダン", straight: 1200, age: { min: 3, max: null, label: "3歳以上" } , grade: "G1" },
@@ -610,11 +611,21 @@
 
     function checkJockey(conditionStr, selectedOptions) {
       if (selectedOptions.length === 0) return true;
-      if (conditionStr.indexOf("騎乗指示：") !== -1) {
-        const selectedInstructions = selectedOptions.filter(val => val !== "騎乗指示条件なし");
+
+      const selectedInstructions = selectedOptions.filter(val => val !== "騎乗指示条件なし");
+
+      // 「先頭の騎乗指示：」は通常の騎乗指示条件とは別扱いにする
+      const maskedConditionStr = (conditionStr || "").replace(/先頭の騎乗指示：/g, "先頭条件：");
+
+      if (maskedConditionStr.indexOf("騎乗指示：") !== -1) {
         if (selectedInstructions.length === 0) return false;
+
+        const jockeyMatch = maskedConditionStr.match(/騎乗指示：\s*((?:逃げ|先行|差し|追込)(?:、(?:逃げ|先行|差し|追込))*)/);
+        if (!jockeyMatch) return false;
+
+        const conditionInstructions = jockeyMatch[1].split("、").map(s => s.trim());
         for (let ins of selectedInstructions) {
-          if (conditionStr.indexOf(ins) !== -1) return true;
+          if (conditionInstructions.includes(ins)) return true;
         }
         return false;
       } else {
@@ -627,10 +638,17 @@
       if (conditionStr.indexOf("天候が") !== -1) {
         const selectedWeathers = selectedOptions.filter(val => val !== "天候条件なし");
         if (selectedWeathers.length === 0) return false;
-        for (let w of selectedWeathers) {
-          if (conditionStr.indexOf(w) !== -1) return true;
+
+        const weatherMatch = conditionStr.match(/天候が\s*(晴|曇|雨|雪)(以外)?/);
+        if (!weatherMatch) return false;
+
+        const targetWeather = weatherMatch[1];
+        const isExcept = !!weatherMatch[2];
+
+        if (isExcept) {
+          return selectedWeathers.some(w => w !== targetWeather);
         }
-        return false;
+        return selectedWeathers.includes(targetWeather);
       } else {
         return selectedOptions.includes("天候条件なし");
       }
@@ -671,11 +689,17 @@
       }
       const seg = after.slice(0, stop).trim();
 
+      const exceptMatch = seg.match(/^(良|稍重|重|不良)以外/);
+      if (exceptMatch) {
+        const excluded = exceptMatch[1];
+        return selected.some(s => s !== excluded);
+      }
+
       // 区切り正規化：読点・スラッシュ・中点・カンマ・全角/半角スペース・「または/もしくは」
       const parts = seg
         .replace(/[／・,]/g, "、")
         .replace(/\s*(または|もしくは)\s*/g, "、")
-        .replace(/[\u0020\u00A0\u3000]+/g, " ") // 連続スペースを1つに
+        .replace(/[  　]+/g, " ") // 連続スペースを1つに
         .split("、")
         .map(s => s.trim())
         .filter(Boolean);
@@ -804,6 +828,10 @@
       }
       if (conditionStr.indexOf("年齢が") !== -1) {
         restrictions.push("年齢");
+      }
+      const headJockeyMatch = conditionStr.match(/先頭の騎乗指示：\s*(逃げ|先行|差し|追込)/);
+      if (headJockeyMatch) {
+        restrictions.push("先頭：" + headJockeyMatch[1]);
       }
       return restrictions.join("＋");
     }
@@ -993,7 +1021,3 @@
   </script>
 </body>
 </html>
-
-
-
-
