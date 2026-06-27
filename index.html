@@ -95,6 +95,26 @@
       box-shadow: 0 2px 2px 0 rgba(0,0,0,0.5);
     }
     
+    /* チェック列 */
+    .check-col {
+      width: 42px;
+      text-align: center;
+      vertical-align: middle;
+    }
+    .talent-check {
+      transform: scale(1.2);
+      cursor: pointer;
+    }
+    .filter-toggle-button {
+      margin-top: 8px;
+      padding: 6px 10px;
+      font-size: 12pt;
+      cursor: pointer;
+    }
+    .filter-toggle-button.active {
+      font-weight: bold;
+    }
+
     /* 注意書き部分 */    
     .update-note { font-weight: normal; margin: 8px 0; }
     .update-note__title { margin: 0 0 6px; font-weight: normal; }
@@ -234,6 +254,10 @@
         <div class="checkboxes">
           <label><input type="checkbox" id="sortEffect"> 発揮位置別ソート</label>
           <label style="margin-left:10px;"><input type="checkbox" id="considerStraightDistance"> 直線距離考慮</label>
+          <br>
+          <button type="button" id="showCheckedOnlyButton" class="filter-toggle-button" aria-pressed="false">
+            チェックされた才能のみを表示：OFF
+          </button>
           <br><br>
           <small><small>
           ※以下の順にソートします<br>
@@ -255,6 +279,7 @@
     <div class="table-panel">
       <table id="dataTable">
         <colgroup>
+          <col style="width: 42px;">
           <col style="width: 150px;">
           <col style="width: 60px;">
           <col style="width: 70px;">
@@ -267,6 +292,7 @@
         </colgroup>
         <thead>
           <tr>
+            <th class="check-col">選択</th>
             <th>才能名</th>
             <th>常時</th>
             <th>発動位置</th>
@@ -385,6 +411,8 @@
      * CSVデータ読み込みとテーブル更新処理
      ***********************************************/
     let csvData = [];
+    const checkedTalentNames = new Set();
+    let showCheckedOnly = false;
 
     fetch('data.csv')
       .then(response => response.text())
@@ -844,12 +872,32 @@
       tbody.innerHTML = '';
       data.forEach(record => {
         const tr = document.createElement('tr');
+        const talentName = record["才能名"] || "";
+
+        // 選択チェックボックス
+        const tdCheck = document.createElement('td');
+        tdCheck.className = "check-col";
+        const check = document.createElement('input');
+        check.type = "checkbox";
+        check.className = "talent-check";
+        check.checked = checkedTalentNames.has(talentName);
+        check.setAttribute("aria-label", talentName + "を選択");
+        check.addEventListener('change', () => {
+          if (check.checked) {
+            checkedTalentNames.add(talentName);
+          } else {
+            checkedTalentNames.delete(talentName);
+            if (showCheckedOnly) filterCSVData();
+          }
+        });
+        tdCheck.appendChild(check);
+        tr.appendChild(tdCheck);
 
         // 才能名（リンク化）
         const tdName = document.createElement('td');
         const a = document.createElement('a');
         a.href = record.link;
-        a.textContent = record["才能名"];
+        a.textContent = talentName;
         a.target = "_blank";
         tdName.appendChild(a);
         tr.appendChild(tdName);
@@ -919,6 +967,16 @@
           return true;
         }
       });
+    }
+
+    function updateCheckedOnlyButton() {
+      const btn = document.getElementById('showCheckedOnlyButton');
+      if (!btn) return;
+      btn.textContent = showCheckedOnly
+        ? 'チェックされた才能のみを表示：ON'
+        : 'チェックされた才能のみを表示：OFF';
+      btn.setAttribute('aria-pressed', showCheckedOnly ? 'true' : 'false');
+      btn.classList.toggle('active', showCheckedOnly);
     }
 
     /***********************************************
@@ -1009,13 +1067,29 @@
         });
       }
       filtered = removeDuplicates(filtered);
+
+      if (showCheckedOnly) {
+        filtered = filtered.filter(record => checkedTalentNames.has(record["才能名"] || ""));
+      }
+
       updateTable(filtered);
     }
 
 
     // 各フィルター変更時に実行
     document.getElementById('raceConditionSelect').addEventListener('change', filterCSVData);
-    document.querySelectorAll('input[type="checkbox"]').forEach(cb => {
+
+    const showCheckedOnlyButton = document.getElementById('showCheckedOnlyButton');
+    if (showCheckedOnlyButton) {
+      showCheckedOnlyButton.addEventListener('click', () => {
+        showCheckedOnly = !showCheckedOnly;
+        updateCheckedOnlyButton();
+        filterCSVData();
+      });
+      updateCheckedOnlyButton();
+    }
+
+    document.querySelectorAll('.filter-panel input[type="checkbox"]').forEach(cb => {
       cb.addEventListener('change', filterCSVData);
     });
   </script>
