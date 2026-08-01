@@ -663,23 +663,37 @@
 
     function checkWeather(conditionStr, selectedOptions) {
       if (selectedOptions.length === 0) return true;
-      if (conditionStr.indexOf("天候が") !== -1) {
-        const selectedWeathers = selectedOptions.filter(val => val !== "天候条件なし");
-        if (selectedWeathers.length === 0) return false;
-
-        const weatherMatch = conditionStr.match(/天候が\s*(晴|曇|雨|雪)(以外)?/);
-        if (!weatherMatch) return false;
-
-        const targetWeather = weatherMatch[1];
-        const isExcept = !!weatherMatch[2];
-
-        if (isExcept) {
-          return selectedWeathers.some(w => w !== targetWeather);
-        }
-        return selectedWeathers.includes(targetWeather);
-      } else {
+    
+      const selectedWeathers =
+        selectedOptions.filter(val => val !== "天候条件なし");
+    
+      const marker = "天候が";
+      const idx = (conditionStr || "").indexOf(marker);
+    
+      // 天候条件の記載なし
+      if (idx === -1) {
         return selectedOptions.includes("天候条件なし");
       }
+    
+      if (selectedWeathers.length === 0) return false;
+    
+      const after = conditionStr.slice(idx + marker.length);
+    
+      // 「天候が晴、曇」などの天候部分を切り出す
+      const segment = after.split(
+        /(?:\d{3,4}\s*[～-]\s*\d{3,4}m|競馬場|騎乗指示：|馬場状態が|。|\n|\r)/
+      )[0];
+    
+      const exceptMatch = segment.match(/(晴|曇|雨|雪)以外/);
+    
+      if (exceptMatch) {
+        const excluded = exceptMatch[1];
+        return selectedWeathers.some(weather => weather !== excluded);
+      }
+    
+      const mentioned = segment.match(/晴|曇|雨|雪/g) || [];
+    
+      return selectedWeathers.some(weather => mentioned.includes(weather));
     }
 
     // 馬場フィルター（列挙のみ対応・範囲表記は扱わない／部分一致禁止）
