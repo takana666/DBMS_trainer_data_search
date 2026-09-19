@@ -123,6 +123,80 @@
     .update-note__list li::before { content: "・"; margin-right: .25em; position: relative; left: -.6em; }
     .update-note__caution { margin: 0; color: #B00020; font-weight: normal; }
 
+    /* レース条件の選択モード */
+    .race-mode-tabs {
+      display: flex;
+      gap: 4px;
+      margin: 0;
+    }
+    .race-mode-tab {
+      flex: 1;
+      padding: 8px 5px;
+      border: 1px solid #bbb;
+      border-bottom: 0;
+      border-radius: 5px 5px 0 0;
+      background: #f3f3f3;
+      color: #333;
+      font-size: 11pt;
+      cursor: pointer;
+    }
+    .race-mode-tab.active {
+      position: relative;
+      z-index: 1;
+      margin-bottom: -1px;
+      border-color: #8cc9d8;
+      background: #f2fbfd;
+      color: #b34c00;
+      font-weight: bold;
+      box-shadow: inset 0 3px 0 #ef7d00;
+    }
+    .race-mode-panel {
+      box-sizing: border-box;
+      padding: 10px;
+      border: 1px solid #8cc9d8;
+      background: #f2fbfd;
+    }
+    .race-mode-panel[hidden] { display: none; }
+    .detail-section {
+      margin-top: 12px;
+    }
+    .detail-section h5 {
+      margin: 0 0 7px;
+      padding-left: 7px;
+      border-left: 3px solid #ef7d00;
+      font-size: 12pt;
+    }
+    .detail-select {
+      width: 100%;
+      padding: 5px;
+      box-sizing: border-box;
+      font-size: 12pt;
+    }
+    .detail-help {
+      display: block;
+      margin-top: 6px;
+      color: #666;
+      line-height: 1.45;
+    }
+    .straight-distance-row {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+      margin-top: 6px;
+    }
+    .straight-distance-row select {
+      flex: 1;
+      min-width: 0;
+      padding: 4px;
+      font-size: 11pt;
+    }
+    .straight-distance-row input {
+      width: 82px;
+      padding: 4px;
+      box-sizing: border-box;
+      font-size: 11pt;
+    }
+
 
   </style>
 </head>
@@ -137,19 +211,29 @@
       <div class="update-note" role="note" aria-label="更新情報">
         <p class="update-note__title">2026/08/25：以下の修正を行いました</p>
         <ul class="update-note__list">
-          <li>シリウスステークスを追加（プルダウンの一番下）</li>
-          
-
+          <li>シリウスステークスを追加（プルダウンの一番下）</li>     
         </ul>
+
+        <p class="update-note__title">2026/09/19：以下の修正を行いました</p>
+        <ul class="update-note__list">
+          <li>非GIのレース条件を選択するためのタブを実装しました</li>     
+        </ul>
+
         <p class="update-note__caution">※特定レースのみの条件（七夕賞等）のフィルタには現状対応していません<br>
-        非G1レースはプルダウンの一番下にあります<br>  
+        非G1レース用の検索は検証中であり仮実装です。また、GIレースには使えません<br>  
         ※まだバグがある可能性が高いので、必ず確認の上ご利用ください</p>
       </div>
 
       <h3><small>データ更新日：<span id="updateDate">取得中…</span></small></h3>
       
       <br>
-      <h4>レース選択</h4>
+      <h4>レース条件</h4>
+      <div class="race-mode-tabs" role="tablist" aria-label="レース条件の選択方法">
+        <button type="button" id="namedRaceTab" class="race-mode-tab active" role="tab" aria-selected="true" aria-controls="namedRacePanel">GIレース名で選択</button>
+        <button type="button" id="detailRaceTab" class="race-mode-tab" role="tab" aria-selected="false" aria-controls="detailRacePanel">非GIレースを詳細検索</button>
+      </div>
+
+      <div id="namedRacePanel" class="race-mode-panel" role="tabpanel" aria-labelledby="namedRaceTab">
       <select id="raceConditionSelect" style="width:100%; font-size:15pt;">
         <option value="">-- 全て表示 --</option>
         <option value="0">フェブラリーステークス</option>
@@ -195,6 +279,97 @@
 
       <div style="margin-top:6px; font-size:12pt;">
         直線距離：<span id="straightDistanceInfo">--</span>
+      </div>
+      </div>
+
+      <div id="detailRacePanel" class="race-mode-panel" role="tabpanel" aria-labelledby="detailRaceTab" hidden>
+        <div class="detail-section">
+          <h5>競馬場</h5>
+          <div class="checkboxes">
+            <label><input type="checkbox" name="detailRacecourse" value="中山"> 中山</label>
+            <label><input type="checkbox" name="detailRacecourse" value="東京"> 東京</label>
+            <label><input type="checkbox" name="detailRacecourse" value="阪神"> 阪神</label>
+            <label><input type="checkbox" name="detailRacecourse" value="小倉"> 小倉</label>
+            <label><input type="checkbox" name="detailRacecourse" value="新潟"> 新潟</label>
+            <label><input type="checkbox" name="detailRacecourse" value="福島"> 福島</label>
+            <label><input type="checkbox" name="detailRacecourse" value="京都"> 京都</label>
+            <label><input type="checkbox" name="detailRacecourse" value="中京"> 中京</label>
+            <label><input type="checkbox" name="detailRacecourse" value="函館"> 函館</label>
+            <label><input type="checkbox" name="detailRacecourse" value="札幌"> 札幌</label>
+            <label><input type="checkbox" name="detailRacecourse" value="ロンシャン"> ロンシャン</label>
+            <label><input type="checkbox" name="detailRacecourse" value="メイダン"> メイダン</label>
+            <label><input type="checkbox" name="detailRacecourse" value="シャティン"> シャティン</label>
+            <label><input type="checkbox" name="detailRacecourse" value="大井"> 大井</label>
+            <label><input type="checkbox" name="detailRacecourse" value="大井（夜）"> 大井（夜）</label>
+            <label><input type="checkbox" name="detailRacecourse" value="__NONE__"> 競馬場条件なし</label>
+          </div>
+        </div>
+
+        <div class="detail-section">
+          <h5>距離</h5>
+          <select id="detailDistanceSelect" class="detail-select">
+            <option value="">-- 指定なし --</option>
+            <option value="1000">1000m</option>
+            <option value="1200">1200m</option>
+            <option value="1400">1400m</option>
+            <option value="1600">1600m</option>
+            <option value="1700">1700m</option>
+            <option value="1800">1800m</option>
+            <option value="1900">1900m</option>
+            <option value="2000">2000m</option>
+            <option value="2100">2100m</option>
+            <option value="2200">2200m</option>
+            <option value="2400">2400m</option>
+            <option value="2410">2410m</option>
+            <option value="2500">2500m</option>
+            <option value="2600">2600m</option>
+            <option value="3000">3000m</option>
+            <option value="3200">3200m</option>
+            <option value="3400">3400m</option>
+            <option value="3600">3600m</option>
+          </select>
+          <div style="margin-top:8px; font-size:12pt;">直線距離</div>
+          <div class="straight-distance-row">
+            <select id="detailStraightDistanceSelect" aria-label="直線距離候補">
+              <option value="">-- 競馬場と距離を選択 --</option>
+            </select>
+          </div>
+          <div class="straight-distance-row">
+            <label for="detailStraightDistanceInput">直接入力</label>
+            <input type="number" id="detailStraightDistanceInput" min="0.1" step="0.1" inputmode="decimal" placeholder="例 525.9">
+            <span>m</span>
+          </div>
+          <small id="detailStraightDistanceInfo" class="detail-help">適用値：--</small>
+        </div>
+
+        <div class="detail-section">
+          <h5>コース</h5>
+          <div class="checkboxes">
+            <label><input type="checkbox" name="detailSurface" value="芝"> 芝</label>
+            <label><input type="checkbox" name="detailSurface" value="ダート"> ダート</label>
+            <label><input type="checkbox" name="detailSurface" value="__NONE__"> コース条件なし</label>
+          </div>
+        </div>
+
+        <div class="detail-section">
+          <h5>グレード</h5>
+          <div class="checkboxes">
+            <label><input type="checkbox" name="detailGrade" value="G1"> GI/JpnIレース</label>
+            <label><input type="checkbox" name="detailGrade" value="NON_G1" checked> GI/JpnIレース以外</label>
+            <label><input type="checkbox" name="detailGrade" value="__NONE__" checked> グレード条件なし</label>
+          </div>
+        </div>
+
+        <div class="detail-section">
+          <h5>馬齢</h5>
+          <div class="checkboxes">
+            <label><input type="checkbox" name="detailAge" value="2"> 2歳</label>
+            <label><input type="checkbox" name="detailAge" value="3"> 3歳</label>
+            <label><input type="checkbox" name="detailAge" value="3+"> 3歳以上</label>
+            <label><input type="checkbox" name="detailAge" value="4+"> 4歳以上</label>
+          </div>
+          <small class="detail-help">複数選択は同じ項目内でOR検索されます。未選択の項目は絞り込みません。</small>
+        </div>
       </div>
 
       <!-- 騎乗指示グループ -->
@@ -406,6 +581,253 @@
       { race: "東京大賞典",               distance: "2000", turfDirt: "ダート", racecourse: "大井", straight: 386,  age: { min: 3, max: null, label: "3歳以上" } , grade: "G1" }
     ];
 
+    // 競馬場・距離・コースから直線距離を決めるためのデータ。
+    // JRA各場はAコースの直線距離を基準とし、内外回りが併存する距離は候補を両方保持する。
+    const straightCourseRules = {
+      "札幌": {
+        "芝": { straight: 266.1, distances: [1000,1200,1800,2000,2600] },
+        "ダート": { straight: 264.3, distances: [1000,1700,2400] }
+      },
+      "函館": {
+        "芝": { straight: 262.1, distances: [1000,1200,1700,1800,2000,2600] },
+        "ダート": { straight: 260.3, distances: [1000,1700,2400] }
+      },
+      "福島": {
+        "芝": { straight: 292.0, distances: [1000,1200,1700,1800,2000,2600] },
+        "ダート": { straight: 295.7, distances: [1000,1700,2400] }
+      },
+      "新潟": {
+        "芝": { byDistance: {
+          1000: [1000], 1200: [358.7], 1400: [358.7,658.7], 1600: [658.7],
+          1800: [658.7], 2000: [358.7,658.7], 2200: [358.7], 2400: [358.7],
+          3000: [658.7], 3200: [658.7]
+        } },
+        "ダート": { straight: 353.9, distances: [1000,1200,1700,1800,2500] }
+      },
+      "東京": {
+        "芝": { straight: 525.9, distances: [1400,1600,1800,2000,2400,2500,2600,3400] },
+        "ダート": { straight: 501.6, distances: [1200,1400,1600,2100,2400] }
+      },
+      "中山": {
+        "芝": { straight: 310, distances: [1200,1600,1800,2000,2200,2500,2600,3200,3600] },
+        "ダート": { straight: 308, distances: [1000,1200,1700,1800,2400,2500] }
+      },
+      "中京": {
+        "芝": { straight: 412.5, distances: [1200,1400,1600,2000,2200,3000] },
+        "ダート": { straight: 410.7, distances: [1200,1400,1800,1900,2500] }
+      },
+      "京都": {
+        "芝": { byDistance: {
+          1200: [328.4], 1400: [328.4,403.7], 1600: [328.4,403.7],
+          1800: [403.7], 2000: [328.4,403.7], 2200: [403.7], 2400: [403.7],
+          3000: [403.7], 3200: [403.7]
+        } },
+        "ダート": { straight: 329.1, distances: [1000,1200,1400,1800,1900,2600] }
+      },
+      "阪神": {
+        "芝": { byDistance: {
+          1200: [356.5], 1400: [356.5,473.6], 1600: [473.6], 1800: [473.6],
+          2000: [356.5], 2200: [356.5], 2400: [473.6], 2600: [473.6],
+          3000: [356.5], 3200: [356.5,473.6]
+        } },
+        "ダート": { straight: 352.7, distances: [1200,1400,1800,2000,2600] }
+      },
+      "小倉": {
+        "芝": { straight: 293, distances: [1000,1200,1700,1800,2000,2600] },
+        "ダート": { straight: 291.3, distances: [1000,1700,2400] }
+      },
+      "ロンシャン": {
+        "芝": { straight: 533, distances: [2400] }
+      },
+      "メイダン": {
+        // 芝1000m・1200mは直線コース。芝周回コースの直線は450m、ダートは400m。
+        "芝": { byDistance: {
+          1000: [1000], 1200: [1200], 1400: [450], 1600: [450],
+          1800: [450], 1900: [450], 2000: [450], 2200: [450],
+          2400: [450], 2410: [450], 3200: [450]
+        } },
+        "ダート": { straight: 400, distances: [1200,1400,1600,1800,1900,2000] }
+      },
+      "シャティン": {
+        // 芝1000mは直線コース。芝周回コースの直線は430m、AWTは380m。
+        "芝": { byDistance: {
+          1000: [1000], 1200: [430], 1400: [430], 1600: [430],
+          1800: [430], 2000: [430], 2400: [430]
+        } },
+        "ダート": { straight: 380, distances: [1200,1800] }
+      },
+      "大井": {
+        // 現行の外回りコース。距離プルダウンに存在する施行距離を登録。
+        "ダート": { straight: 386, distances: [1000,1200,1400,1600,1700,1800,2000,2400,2600] }
+      },
+      "大井（夜）": {
+        "ダート": { straight: 386, distances: [1000,1200,1400,1600,1700,1800,2000,2400,2600] }
+      }
+    };
+
+    function getRuleStraightValues(rule, distance) {
+      if (!rule) return [];
+      if (rule.byDistance && rule.byDistance[distance]) return rule.byDistance[distance].slice();
+      if (rule.distances && rule.distances.indexOf(distance) !== -1 && typeof rule.straight === "number") {
+        return [rule.straight];
+      }
+      return [];
+    }
+
+    function resolveDetailStraightDistance(racecourses, distanceValue, surfaces) {
+      const courses = (racecourses || []).filter(value => value !== "__NONE__");
+      const selectedSurfaces = (surfaces || []).filter(value => value !== "__NONE__");
+      const distance = parseInt(distanceValue, 10);
+
+      if (courses.length === 0 || isNaN(distance)) {
+        return { value: null, text: "--", values: [] };
+      }
+
+      const values = [];
+      courses.forEach(course => {
+        const courseRules = straightCourseRules[course];
+        if (!courseRules) return;
+        const surfacesToCheck = selectedSurfaces.length > 0 ? selectedSurfaces : Object.keys(courseRules);
+        surfacesToCheck.forEach(surface => {
+          getRuleStraightValues(courseRules[surface], distance).forEach(value => values.push(value));
+        });
+      });
+
+      // GIレース名選択側の登録データも参照し、今後レースが追加された場合の漏れを防ぐ。
+      raceConditions.forEach(rc => {
+        if (!rc || courses.indexOf(rc.racecourse) === -1) return;
+        if (parseInt(rc.distance, 10) !== distance || typeof rc.straight !== "number") return;
+        if (selectedSurfaces.length > 0 && selectedSurfaces.indexOf(rc.turfDirt) === -1) return;
+        values.push(rc.straight);
+      });
+
+      const uniqueValues = Array.from(new Set(values)).sort((a, b) => a - b);
+      if (uniqueValues.length === 0) {
+        return { value: null, text: "該当データなし", values: [] };
+      }
+      if (uniqueValues.length === 1) {
+        return { value: uniqueValues[0], text: uniqueValues[0] + "m（自動）", values: uniqueValues };
+      }
+      return {
+        value: null,
+        text: "複数候補：" + uniqueValues.map(value => value + "m").join(" / "),
+        values: uniqueValues
+      };
+    }
+
+    function updateDetailStraightDistanceControls(resolution) {
+      const selectEl = document.getElementById('detailStraightDistanceSelect');
+      const inputEl = document.getElementById('detailStraightDistanceInput');
+      const infoEl = document.getElementById('detailStraightDistanceInfo');
+      const previousSelection = selectEl ? selectEl.value : "";
+      const values = resolution && resolution.values ? resolution.values : [];
+
+      if (selectEl) {
+        selectEl.innerHTML = "";
+
+        if (values.length !== 1) {
+          const placeholder = document.createElement('option');
+          placeholder.value = "";
+          placeholder.textContent = values.length > 1
+            ? "-- 候補から選択 --"
+            : (resolution && resolution.text !== "--" ? "-- " + resolution.text + " --" : "-- 競馬場と距離を選択 --");
+          selectEl.appendChild(placeholder);
+        }
+
+        values.forEach(value => {
+          const option = document.createElement('option');
+          option.value = String(value);
+          option.textContent = value + "m";
+          selectEl.appendChild(option);
+        });
+
+        if (values.length === 1) {
+          selectEl.value = String(values[0]);
+        } else if (values.some(value => String(value) === previousSelection)) {
+          selectEl.value = previousSelection;
+        } else {
+          selectEl.value = "";
+        }
+      }
+
+      const manualValue = inputEl && inputEl.value !== "" ? parseFloat(inputEl.value) : NaN;
+      const selectedValue = selectEl && selectEl.value !== "" ? parseFloat(selectEl.value) : NaN;
+      const effectiveValue = !isNaN(manualValue) && manualValue > 0
+        ? manualValue
+        : (!isNaN(selectedValue) && selectedValue > 0 ? selectedValue : null);
+
+      if (infoEl) {
+        if (!isNaN(manualValue) && manualValue > 0) {
+          infoEl.textContent = "適用値：" + manualValue + "m（直接入力）";
+        } else if (effectiveValue != null) {
+          infoEl.textContent = "適用値：" + effectiveValue + "m" + (values.length === 1 ? "（自動）" : "（選択）");
+        } else if (values.length > 1) {
+          infoEl.textContent = "候補を選択するか、直線距離を直接入力してください";
+        } else {
+          infoEl.textContent = "適用値：--";
+        }
+      }
+
+      return { value: effectiveValue, values: values };
+    }
+
+    function resetManualStraightDistance() {
+      const inputEl = document.getElementById('detailStraightDistanceInput');
+      if (inputEl) inputEl.value = "";
+    }
+
+    // レース名から分かる性別条件。発揮条件にレース名だけが書かれている才能の判定にも使用する。
+    const raceSexConditions = {
+      "桜花賞": "female",
+      "オークス": "female",
+      "秋華賞": "female",
+      "ヴィクトリアマイル": "female",
+      "エリザベス女王杯": "female",
+      "阪神ジュベナイルフィリーズ": "female",
+      "皐月賞": "maleFemale",
+      "ＮＨＫマイルカップ": "maleFemale",
+      "日本ダービー": "maleFemale",
+      "菊花賞": "maleFemale",
+      "朝日杯フューチュリティステークス": "maleFemale",
+      "ホープフルステークス": "maleFemale"
+    };
+
+    // レース名選択で使っているraceConditionsを、レース名限定才能の詳細判定にも共通利用する。
+    raceConditions.forEach(rc => {
+      rc.sex = raceSexConditions[rc.race] || "none";
+    });
+
+    function getNamedRaceConditions(conditionStr) {
+      const s = conditionStr || "";
+      return raceConditions.filter(rc => s.indexOf(rc.race) !== -1);
+    }
+
+    // ダビマス内にのみ存在するGIレース。
+    // GIレース名選択には表示せず、発揮条件のグレード判定にだけ使用する。
+    const fictionalG1RaceNames = [
+      "オベリスク牧場記念",
+      "ダミカ牧場記念",
+      "ダビマススプリント",
+      "ダビマスダートカップ",
+      "ダビマス金杯",
+      "ダビマスチャレンジカップ",
+      "ダビマスステイヤー",
+      "ダビマスダービー",
+      "ダビマスサマーカップ",
+      "ダートロードステークス"
+    ];
+
+    function getRaceAgeOption(raceAge) {
+      if (!raceAge) return null;
+      if (raceAge.min === 2 && raceAge.max === 2) return "2";
+      if (raceAge.min === 3 && raceAge.max === 3) return "3";
+      if (raceAge.min === 3 && raceAge.max == null) return "3+";
+      if (raceAge.min === 4 && raceAge.max == null) return "4+";
+      return null;
+    }
+
+    let raceSearchMode = "named";
+
 
     /***********************************************
      * CSVデータ読み込みとテーブル更新処理
@@ -497,6 +919,11 @@
       return true;
     }
 
+    function hasSurfaceCondition(conditionStr) {
+      if (!conditionStr) return false;
+      return conditionStr.indexOf("芝") !== -1 || conditionStr.indexOf("ダート") !== -1;
+    }
+
     function checkRacecourse(conditionStr, selectedRacecourse) {
       if (!conditionStr) return true;
       if (!selectedRacecourse) return true;
@@ -556,6 +983,42 @@
       return false;
     }
 
+    function hasRacecourseCondition(conditionStr) {
+      if (!conditionStr) return false;
+      return [
+        "中山","東京","阪神","小倉","新潟","福島","京都","中京","函館","札幌",
+        "ロンシャン","メイダン","シャティン","大井"
+      ].some(course => conditionStr.indexOf(course) !== -1);
+    }
+
+    function checkRacecourseSelections(conditionStr, selectedOptions) {
+      if (!selectedOptions || selectedOptions.length === 0) return true;
+
+      // 競馬場指定のない才能は、どの競馬場でも使用できるため常に適合。
+      if (!hasRacecourseCondition(conditionStr)) return true;
+
+      if (selectedOptions.indexOf("__NONE__") !== -1 && !hasRacecourseCondition(conditionStr)) {
+        return true;
+      }
+      return selectedOptions
+        .filter(value => value !== "__NONE__")
+        .some(course => checkRacecourse(conditionStr, course));
+    }
+
+    function checkSurfaceSelections(conditionStr, selectedOptions) {
+      if (!selectedOptions || selectedOptions.length === 0) return true;
+
+      // 芝・ダート指定のない才能は両方で使用できる。
+      if (!hasSurfaceCondition(conditionStr)) return true;
+
+      if (selectedOptions.indexOf("__NONE__") !== -1 && !hasSurfaceCondition(conditionStr)) {
+        return true;
+      }
+      return selectedOptions
+        .filter(value => value !== "__NONE__")
+        .some(surface => checkTurfDirt(conditionStr, surface));
+    }
+
     function checkRaceName(conditionStr, selectedRaceName) {
       if (!conditionStr) return true;
       const knownRaces = raceConditions.map(rc => rc.race);
@@ -571,7 +1034,7 @@
 
 
     /***年齢チェック**/
-    function checkAge(conditionStr, raceAge) {
+  function checkAge(conditionStr, raceAge) {
     // レース側に年齢ルールが無ければスルー
     if (!raceAge || (raceAge.min == null && raceAge.max == null)) return true;
 
@@ -607,6 +1070,61 @@
     return true;
   }
 
+    function checkAgeSelections(conditionStr, selectedOptions) {
+      if (!selectedOptions || selectedOptions.length === 0) return true;
+
+      const namedRaces = getNamedRaceConditions(conditionStr);
+      if (namedRaces.length > 0) {
+        return namedRaces.some(rc => {
+          const raceAgeOption = getRaceAgeOption(rc.age);
+          return raceAgeOption != null && selectedOptions.indexOf(raceAgeOption) !== -1;
+        });
+      }
+
+      const ageRules = {
+        "2":  { min: 2, max: 2,    label: "2歳" },
+        "3":  { min: 3, max: 3,    label: "3歳" },
+        "3+": { min: 3, max: null, label: "3歳以上" },
+        "4+": { min: 4, max: null, label: "4歳以上" }
+      };
+      return selectedOptions.some(value => ageRules[value] && checkAge(conditionStr, ageRules[value]));
+    }
+
+    function getConditionSexTypes(conditionStr) {
+      const types = new Set();
+      const s = conditionStr || "";
+
+      const namedRaces = getNamedRaceConditions(s);
+      if (namedRaces.length > 0) {
+        namedRaces.forEach(rc => types.add(rc.sex || "none"));
+        return types;
+      }
+
+      const hasMaleFemale = /(?:牡馬?[・\/、と]牝馬?|牡牝)(?:限定|のみ)/.test(s);
+      const hasMaleGelding = /(?:牡馬?[・\/、と]セン馬|牡・セン)(?:限定|のみ)/.test(s);
+      if (hasMaleFemale) types.add("maleFemale");
+      if (hasMaleGelding) types.add("maleGelding");
+      if (!hasMaleFemale && /牝馬(?:限定|のみ)/.test(s)) types.add("female");
+
+      if (types.size === 0) types.add("none");
+      return types;
+    }
+
+    function checkSexSelections(conditionStr, selectedOptions) {
+      if (!selectedOptions || selectedOptions.length === 0) return true;
+      const conditionTypes = getConditionSexTypes(conditionStr);
+      const namedRaces = getNamedRaceConditions(conditionStr);
+
+      // レース名限定の場合は、そのレース自体の性別条件と完全一致させる。
+      if (namedRaces.length > 0) {
+        return selectedOptions.some(value => conditionTypes.has(value));
+      }
+
+      // 性別指定のない才能は、どの性別条件のレースでも使用できる。
+      if (conditionTypes.has("none")) return true;
+      return selectedOptions.some(value => conditionTypes.has(value));
+    }
+
 
 
     /***グレードチェック***/
@@ -626,6 +1144,32 @@
 
       // グレード条件が書かれていない場合は通す
       return true;
+    }
+
+    function checkGradeSelections(conditionStr, selectedOptions) {
+      if (!selectedOptions || selectedOptions.length === 0) return true;
+
+      const s = conditionStr || "";
+      const namedRaces = getNamedRaceConditions(s);
+      const namedGradeOptions = new Set();
+      namedRaces.forEach(rc => {
+        namedGradeOptions.add(rc.grade === "G1" ? "G1" : "NON_G1");
+      });
+      if (fictionalG1RaceNames.some(raceName => s.indexOf(raceName) !== -1)) {
+        namedGradeOptions.add("G1");
+      }
+      if (namedGradeOptions.size > 0) {
+        return selectedOptions.some(value => namedGradeOptions.has(value));
+      }
+
+      const hasNonG1 = s.indexOf("GI/JpnIレース以外") !== -1;
+      const hasG1Only = !hasNonG1 && s.indexOf("GI/JpnIレース") !== -1;
+
+      // グレード指定のない才能は、どのグレードでも使用できる。
+      if (!hasG1Only && !hasNonG1) return true;
+      if (hasG1Only && selectedOptions.indexOf("G1") !== -1) return true;
+      if (hasNonG1 && selectedOptions.indexOf("NON_G1") !== -1) return true;
+      return false;
     }
 
 
@@ -1037,6 +1581,14 @@
       const weatherSelected = getCheckedValues('weather');
       const babaSelected = getCheckedValues('baba');
       const effectSelected = getCheckedValues('effect');
+      const detailRacecourses = getCheckedValues('detailRacecourse');
+      const detailSurfaces = getCheckedValues('detailSurface');
+      const detailGrades = getCheckedValues('detailGrade');
+      const detailAges = getCheckedValues('detailAge');
+      const detailDistanceEl = document.getElementById('detailDistanceSelect');
+      const detailDistance = detailDistanceEl ? detailDistanceEl.value : "";
+      const detailStraightResolution = resolveDetailStraightDistance(detailRacecourses, detailDistance, detailSurfaces);
+      const detailStraight = updateDetailStraightDistanceControls(detailStraightResolution);
 
       let filtered = csvData.filter(record => {
         // 除外対象
@@ -1044,13 +1596,19 @@
         const cond = record["発揮条件"];
         const effect = record["発揮効果"] || "";
         let raceConditionPassed = true;
-        if (rc) {
+        if (raceSearchMode === "named" && rc) {
           raceConditionPassed = checkDistance(cond, rc.distance) &&
                                 checkTurfDirt(cond, rc.turfDirt) &&
                                 checkRacecourse(cond, rc.racecourse) &&
                                 checkRaceName(cond, rc.race) &&
                                  checkAge(cond, rc.age) &&
                                  checkGrade(cond, rc.grade);
+        } else if (raceSearchMode === "detail") {
+          raceConditionPassed = (!detailDistance || checkDistance(cond, detailDistance)) &&
+                                checkRacecourseSelections(cond, detailRacecourses) &&
+                                checkSurfaceSelections(cond, detailSurfaces) &&
+                                checkGradeSelections(cond, detailGrades) &&
+                                checkAgeSelections(cond, detailAges);
         }
         const jockeyPassed = checkJockey(cond, jockeySelected);
         const weatherPassed = checkWeather(cond, weatherSelected);
@@ -1067,7 +1625,9 @@
         filtered.sort((a, b) => {
           const considerEl = document.getElementById("considerStraightDistance");
           const considerStraight = considerEl ? considerEl.checked : false;
-          const straightDistance = (rc && typeof rc.straight === "number") ? rc.straight : null;
+          const straightDistance = raceSearchMode === "named"
+            ? ((rc && typeof rc.straight === "number") ? rc.straight : null)
+            : detailStraight.value;
 
           const sortA = getSortCategory(a["発揮効果"] || "", considerStraight, straightDistance);
           const sortB = getSortCategory(b["発揮効果"] || "", considerStraight, straightDistance);
@@ -1090,8 +1650,48 @@
     }
 
 
+    function setRaceSearchMode(mode) {
+      raceSearchMode = mode === "detail" ? "detail" : "named";
+
+      const isNamed = raceSearchMode === "named";
+      const namedTab = document.getElementById('namedRaceTab');
+      const detailTab = document.getElementById('detailRaceTab');
+      const namedPanel = document.getElementById('namedRacePanel');
+      const detailPanel = document.getElementById('detailRacePanel');
+
+      if (namedTab) {
+        namedTab.classList.toggle('active', isNamed);
+        namedTab.setAttribute('aria-selected', isNamed ? 'true' : 'false');
+      }
+      if (detailTab) {
+        detailTab.classList.toggle('active', !isNamed);
+        detailTab.setAttribute('aria-selected', !isNamed ? 'true' : 'false');
+      }
+      if (namedPanel) namedPanel.hidden = !isNamed;
+      if (detailPanel) detailPanel.hidden = isNamed;
+
+      filterCSVData();
+    }
+
     // 各フィルター変更時に実行
     document.getElementById('raceConditionSelect').addEventListener('change', filterCSVData);
+    document.getElementById('detailDistanceSelect').addEventListener('change', () => {
+      resetManualStraightDistance();
+      filterCSVData();
+    });
+    document.querySelectorAll('input[name="detailRacecourse"], input[name="detailSurface"]').forEach(cb => {
+      cb.addEventListener('change', () => {
+        resetManualStraightDistance();
+        filterCSVData();
+      });
+    });
+    document.getElementById('detailStraightDistanceSelect').addEventListener('change', () => {
+      resetManualStraightDistance();
+      filterCSVData();
+    });
+    document.getElementById('detailStraightDistanceInput').addEventListener('input', filterCSVData);
+    document.getElementById('namedRaceTab').addEventListener('click', () => setRaceSearchMode('named'));
+    document.getElementById('detailRaceTab').addEventListener('click', () => setRaceSearchMode('detail'));
 
     const showCheckedOnlyButton = document.getElementById('showCheckedOnlyButton');
     if (showCheckedOnlyButton) {
@@ -1104,6 +1704,7 @@
     }
 
     document.querySelectorAll('.filter-panel input[type="checkbox"]').forEach(cb => {
+      if (cb.name === 'detailRacecourse' || cb.name === 'detailSurface') return;
       cb.addEventListener('change', filterCSVData);
     });
   </script>
